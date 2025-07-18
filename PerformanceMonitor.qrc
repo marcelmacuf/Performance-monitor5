@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="PerformanceMonitor">
+    <file>Icon/AppIcon.ico</file>
+  </qresource>
+</RCC>
