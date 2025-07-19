@@ -67,11 +67,17 @@
     <Link>
       <AdditionalDependencies>Pdh.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalDependencies>Pdh.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
@@ -116,11 +122,11 @@
     <QtUic Include="PerformanceMonitor.ui" />
     <QtMoc Include="PerformanceMonitor.h" />
     <ClCompile Include="ChartWidget.cpp" />
-    <ClCompile Include="PerformanceCounters.cpp" />
+    <ClCompile Include="ColorButton.cpp" />
     <ClCompile Include="PerformanceMonitor.cpp" />
     <ClCompile Include="main.cpp" />
     <QtMoc Include="ChartWidget.h" />
-    <ClInclude Include="PerformanceCounters.h" />
+    <QtMoc Include="ColorButton.h" />
     <ClInclude Include="stdafx.h" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">Create</PrecompiledHeader>

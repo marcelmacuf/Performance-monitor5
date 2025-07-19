@@ -7,15 +7,97 @@
 #include <QValueAxis>
 #include <pdh.h>
 #include <pdhmsg.h>
+#include <__msvc_ranges_to.hpp>
 
 constexpr int c_unitWidth = 41;
 constexpr int c_unitHeight = 26;
-constexpr int c_defaultWidthMul = 3;
-constexpr int c_defaultHeightMul = 3;
+constexpr int c_defaultSizeIndex = 2;
 constexpr char c_CPU[]{ "CPU" };
 constexpr char c_RAM[]{ "RAM" };
 constexpr char c_DISK[]{ "DISC" };
 constexpr char c_NET[]{ "NET" };
+const QColor c_CPUColor(0, 123, 183);
+const QColor c_RAMColor(0, 128, 0);
+const QColor c_DISKColor(176, 119, 0);
+const QColor c_NETColor(149, 149, 37);
+
+namespace
+{
+	class NetworkBandwithItem
+	{
+	public:
+		NetworkBandwithItem(const QString str, const int magnitude, const int size) : m_str(str), m_magnitude(magnitude), m_size(size)
+		{
+		}
+		const QString m_str;
+		const int m_magnitude = 1;
+		const double m_size = 1;
+	};
+	const NetworkBandwithItem c_BandwithList[]
+	{
+		{ "Auto", 0, 0},
+		{ "Dailup (56Kb)", 1, 56 },
+		{ "DSL (640Kb)", 1, 640 },
+		{ "DSL (1.5Mb)", 1, 1500 },
+		{ "DSL (7Mb)", 2, 7 },
+		{ "DSL (12Mb)", 2, 12 },
+		{ "Wireless g (54Mb)", 2, 54 },
+		{ "Ethernet (100Mb)", 2, 100 },
+		{ "Wireless n (600Mb)", 2, 600 },
+		{ "Ethernet (1Gb)", 3, 1 },
+		{ "Ethernet (10Gb)", 3, 10 },
+		{ "Ethernet (100Gb)", 3, 100 }
+	};
+
+	const QSize c_SizeList[]
+	{
+		{ 1, 1 },
+		{ 2, 2 },
+		{ 3, 3 },
+		{ 4, 4 },
+		{ 3, 2 },
+		{ 4, 2 },
+		{ 4, 3 }
+	};
+
+	QSize ComputeSize(const QSize& input)
+	{
+		return QSize(input.width() * c_unitWidth, input.height() * c_unitHeight);
+	}
+	QSize GetDefaultSize()
+	{
+		static_assert(std::size(c_SizeList) > c_defaultSizeIndex);
+		const QSize& defaultSize = c_SizeList[c_defaultSizeIndex];
+		return ComputeSize(defaultSize);
+	}
+
+	const std::pair<QString, int> c_UpdateIntervals[]
+	{
+		{ "Fast - 1 sec", 1 },
+		{ "Normal - 2 sec", 2 },
+		{ "Medium - 3 sec", 3 },
+		{ "Slow - 5 sec", 5 },
+		{ "Very Slow - 10 sec", 10 },
+	};
+	const std::pair<QString, ChartGlobalOptions::ProcessPriority> c_Priorities[]
+	{
+		{ "Below Normal", ChartGlobalOptions::ProcessPriority::eBelowNormal  },
+		{ "Normal", ChartGlobalOptions::ProcessPriority::eNormal },
+		{ "Above Normal", ChartGlobalOptions::ProcessPriority::eAboveNormal }
+	};
+
+	const  std::pair<QString, ChartGlobalOptions::ChartWindowStyle> c_WindowStyles[]
+	{
+		{ "Flat",		ChartGlobalOptions::ChartWindowStyle::eFlat },
+		{ "Style 1",	ChartGlobalOptions::ChartWindowStyle::eStyle2 },
+		{ "Style 2",	ChartGlobalOptions::ChartWindowStyle::eStyle3 }
+	};
+	const std::pair<QString, ChartOptions::ChartStyle> c_GraphStyles[]
+	{
+		{ "Line", ChartOptions::ChartStyle::eLine },
+		{ "Pile", ChartOptions::ChartStyle::ePile },
+	};
+}
 
 PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	m_globalOptions("GlobalOptions"),
@@ -26,6 +108,7 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	m_pAppSettings(new QSettings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName()))
 {
 	ui.setupUi(this);
+	InitUiElements();
 	CreateTrayActions();
 	m_pTrayIcon->show();
 	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
@@ -40,6 +123,8 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	{
 		ResetSettings(true);
 	}
+	ValidateData();
+	LoadDataToUi();
 	
 	for (ChartOptions* options : optionsList)
 	{
@@ -56,55 +141,6 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	QObject::connect(&m_timer, &QTimer::timeout, this, &PerformanceMonitor::HandleTimeout);
 	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
 	m_timer.start();
-
-
-	//	QChart* pChart = new QChart;
-	//	QMargins margins;
-	//	pChart->setMargins(margins);
-	//	this->setContentsMargins(margins);
-	//	//this->setWindowOpacity(0.9);
-	//
-	//	QLineSeries* series = new QLineSeries;
-	//	series->append(0, 6);
-	//	series->append(2, 4);
-	//	series->append(3, 8);
-	//	series->append(7, 4);
-	//	series->append(10, 5);
-	//	*series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) << QPointF(20, 2);
-	//	series->setColor(QColor(119, 242, 255));
-	//	pChart->addSeries(series);
-	//
-	//	QScatterSeries* series2 = new QScatterSeries();
-	//	series2->append(0, 60);
-	//	series2->append(20, 40);
-	//	pChart->addSeries(series);
-	//
-	//	pChart->legend()->hide();
-	//	pChart->layout()->setContentsMargins(0, 0, 0, 0);
-	//	pChart->setBackgroundRoundness(0);
-	//	pChart->setBackgroundBrush(QBrush(QColor(0, 123, 183)));
-	//	pChart->createDefaultAxes();
-	//	pChart->axes(Qt::Horizontal).first()->setRange(0, 20);
-	//	pChart->axes(Qt::Vertical).first()->setRange(0, 10);
-	//	pChart->axes(Qt::Horizontal).first()->setTitleVisible(false);
-	//	pChart->axes(Qt::Horizontal).first()->setLabelsVisible(false);
-	//	pChart->axes(Qt::Horizontal).first()->setGridLineVisible(true);
-	////	pChart->axes(Qt::Horizontal).first()->setGridLineColor(QColor(34, 157, 217));
-	//	QBrush br(QBrush(QColor(34, 157, 217)));
-	//	pChart->axes(Qt::Horizontal).first()->setGridLinePen(QPen(br,1, Qt::PenStyle::DotLine));
-	//	QValueAxis* axisx = (QValueAxis * )pChart->axes(Qt::Horizontal).first();
-	//	//axisx->setTickType(QValueAxis::TicksDynamic);
-	//	//axisx->setTickAnchor(0.0);
-	//	//axisx->setTickInterval(10);
-	//	axisx->setTickCount(4);
-	//	pChart->axes(Qt::Vertical).first()->hide();
-	//	auto pChartView = new QChartView(pChart);
-	//	//pChartView->setContentsMargins(margins);
-	//	pChartView->setRenderHint(QPainter::Antialiasing);
-	//	pChartView->setWindowFlag(Qt::WindowStaysOnTopHint, true);	// ale ked sa meni hodnota tak je potrebny nejaky refresh
-	//	pChartView->setWindowFlags(Qt::FramelessWindowHint | Qt::ToolTip | Qt::WindowTransparentForInput);
-	//	pChartView->resize(124, 79);  // a to je 3X3  takze default to je 41 X 26
-	//	pChartView->show();
 }
 
 PerformanceMonitor::~PerformanceMonitor()
@@ -163,6 +199,154 @@ void PerformanceMonitor::CreateTrayActions()
 	m_pTrayIcon->setContextMenu(pTrayIconMenu);
 }
 
+void PerformanceMonitor::InitUiElements()
+{
+	for (const std::pair<QString, int>& updateIntervnal : c_UpdateIntervals)
+	{
+		ui.cbUpdateInterval->addItem(updateIntervnal.first);
+	}
+	for (const auto&[priority, dummy] : c_Priorities)
+	{
+		ui.cbPriority->addItem(priority);
+	}
+	for (const auto&[style, dummy] : c_WindowStyles)
+	{
+		ui.cbStyle->addItem(style);
+	}
+	for (int i = 100 ;i > 10; i -= 10)
+	{
+		ui.cbVisibility->addItem(QString::number(i) + "%", i);
+	}
+
+	for (QComboBox* pComboBox : { ui.sizeCPU, ui.sizeRAM, ui.sizeDisk, ui.sizeNET })
+	{
+		for (const QSize& size : c_SizeList)
+		{
+			QString sizeStr("Size ");
+			sizeStr += QString::number(size.width()) + "x" + QString::number(size.height());
+			const QSize windowSize(size.width() * c_unitWidth, size.height() * c_unitHeight);
+			pComboBox->addItem(sizeStr, windowSize);
+		}
+	}
+	for (QComboBox* pComboBox : { ui.graphCPU, ui.graphRAM, ui.graphDisk, ui.graphNET })
+	{
+		for (const auto&[graphStyle, dummy] : c_GraphStyles)
+		{
+			pComboBox->addItem(graphStyle);
+		}
+	}
+	for (const NetworkBandwithItem& item : c_BandwithList)
+	{
+		ui.maxBandwithNET->addItem(item.m_str);
+	}
+}
+
+void PerformanceMonitor::ValidateData()
+{
+	const auto foundInternal = std::ranges::find_if(c_UpdateIntervals, [this](const auto& item) { return m_globalOptions.m_updateInterval == item.second;});
+	if (foundInternal == std::end(c_UpdateIntervals))
+	{
+		m_globalOptions.m_updateInterval = c_DefaultUpdateInterval;
+	}
+	auto foundPriority = std::ranges::find_if(c_Priorities, [this](const auto& item) { return m_globalOptions.m_processPriority == item.second;});
+	if (foundPriority == std::end(c_Priorities))
+	{
+		m_globalOptions.m_processPriority = ChartGlobalOptions::ProcessPriority::eDefaultPriority;
+	}
+	auto foundStyle = std::ranges::find_if(c_WindowStyles, [this](const auto& item) { return m_globalOptions.m_chartWindowStyle == item.second;});
+	if (foundStyle == std::end(c_WindowStyles))
+	{
+		m_globalOptions.m_chartWindowStyle = ChartGlobalOptions::ChartWindowStyle::eDefaultStyle;
+	}
+	bool bFoundTransparency = false;
+	for (int i = 100;i > 10; i -= 10)
+	{
+		if (i == m_globalOptions.m_transparency)
+		{
+			bFoundTransparency = true;
+			break;
+		}
+	}
+	if (!bFoundTransparency)
+		m_globalOptions.m_transparency = c_DefaultTransparency;
+
+	const auto ValidateChartOptions = [](ChartOptions& options, const QColor defaultColor)
+		{
+			const auto foundchartType = std::ranges::find_if(c_GraphStyles, [&options](const auto& item) { return options.m_ChartType == item.second;});
+			if (foundchartType == std::end(c_GraphStyles))
+			{
+				options.m_ChartType = ChartOptions::eDefaultCharStyle;
+			}
+			const auto foundSize = std::ranges::find_if(c_SizeList, [&options](const auto& item) { return options.m_size == ComputeSize(item);});
+			if (foundSize == std::end(c_SizeList))
+			{
+				options.m_size = GetDefaultSize();
+			}
+			if (!options.m_backgroundColor.isValid())
+				options.m_backgroundColor = defaultColor;
+			if (!options.m_lineColor.isValid())
+				options.m_lineColor = ChartOptions::GenerateLineColor(defaultColor);
+		};
+	ValidateChartOptions(m_cpuOptions, c_CPUColor);
+	ValidateChartOptions(m_ramOptions, c_RAMColor);
+	ValidateChartOptions(m_diskOptions, c_DISKColor);
+	ValidateChartOptions(m_netOptions, c_NETColor);
+
+	if (m_netOptions.m_maxNetworkBandwidthIndex < 0 || m_netOptions.m_maxNetworkBandwidthIndex >= std::size(c_BandwithList))
+		m_netOptions.m_maxNetworkBandwidthIndex = c_DefaultMaxBandwithIndex;
+}
+
+void PerformanceMonitor::LoadDataToUi()
+{
+	ui.chAutoStart->setChecked(m_globalOptions.m_bAutostartWithWindows);
+	ui.chPass->setChecked(m_globalOptions.m_bPassThroughtMode);
+	ui.chAllwaysTop->setChecked(m_globalOptions.m_bAllwaysOnTheTop);
+	ui.chShowLabel->setChecked(m_globalOptions.m_bAllwaysShowLabel);
+	const auto foundInterval = std::ranges::find_if(c_UpdateIntervals, [this](const auto& item) { return m_globalOptions.m_updateInterval == item.second;});
+	ui.cbUpdateInterval->setCurrentIndex(std::distance(std::begin(c_UpdateIntervals), foundInterval));
+
+	const auto foundPriority = std::ranges::find_if(c_Priorities, [this](const auto& item) { return m_globalOptions.m_processPriority == item.second;});
+	ui.cbPriority->setCurrentIndex(std::distance(std::begin(c_Priorities), foundPriority));
+
+	const int foundTransparency = ui.cbVisibility->findData(m_globalOptions.m_transparency);
+	if (foundTransparency != -1)
+	{
+		ui.cbVisibility->setCurrentIndex(foundTransparency);
+	}
+
+	const auto foundStyle = std::ranges::find_if(c_WindowStyles, [this](const auto& item) { return m_globalOptions.m_chartWindowStyle == item.second;});
+	ui.cbStyle->setCurrentIndex(std::distance(std::begin(c_WindowStyles), foundStyle));
+	LoadDataToChart(m_cpuOptions, ui.showCPU, ui.graphCPU, ui.doubleLineCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
+	LoadDataToChart(m_ramOptions, ui.showRAM, ui.graphRAM, ui.doubleLineRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
+	LoadDataToChart(m_diskOptions, ui.showDisk, ui.graphDisk, ui.doubleLineDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
+	LoadDataToChart(m_netOptions, ui.showNET, ui.graphNET, ui.doubleLineNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
+
+	ui.showForEachCPU->setChecked(m_cpuOptions.m_bOneGraphForEachCore);
+	ui.separateGrpahsDisk->setChecked(m_diskOptions.m_bShowSeparateGraphs);
+	ui.separateGrpahsNET->setChecked(m_netOptions.m_bShowSeparateGraphs);
+	ui.maxBandwithNET->setCurrentIndex(m_netOptions.m_maxNetworkBandwidthIndex);
+
+}
+
+void PerformanceMonitor::LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize, 
+										 ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground)
+{
+	pVisible->setChecked(options.m_bShowGraph);
+	pDoubleLine->setChecked(options.m_bDoubleLine);
+	pManualForeground->setChecked(options.m_bManualForeground);
+	pBack->SetColor(options.m_backgroundColor);
+	pForeground->SetColor(options.m_lineColor);
+
+	const auto foundStyle = std::ranges::find_if(c_GraphStyles, [&options](const auto& item) { return options.m_ChartType == item.second;});
+	pGraph->setCurrentIndex(std::distance(std::begin(c_GraphStyles), foundStyle));
+
+	const int foundSize = pSize->findData(options.m_size);
+	if (foundSize != -1)
+	{
+		pSize->setCurrentIndex(foundSize);
+	}
+}
+
 void PerformanceMonitor::ResetSettings(const bool bPositions)
 {
 	m_globalOptions.Reset();
@@ -171,10 +355,10 @@ void PerformanceMonitor::ResetSettings(const bool bPositions)
 	m_diskOptions.Reset();
 	m_netOptions.Reset();
 	
-	m_cpuOptions.m_backgroundColor = QColor(0, 123, 183);
-	m_ramOptions.m_backgroundColor = QColor(0, 128, 0);
-	m_diskOptions.m_backgroundColor = QColor(176, 119, 0);
-	m_netOptions.m_backgroundColor = QColor(149, 149, 37);
+	m_cpuOptions.m_backgroundColor = c_CPUColor;
+	m_ramOptions.m_backgroundColor = c_RAMColor;
+	m_diskOptions.m_backgroundColor = c_DISKColor;
+	m_netOptions.m_backgroundColor = c_NETColor;
 	ChartOptions* const optionsList[4]{ &m_netOptions, &m_diskOptions, &m_ramOptions, &m_cpuOptions };
 	for (ChartOptions* options : optionsList)
 	{
@@ -183,9 +367,7 @@ void PerformanceMonitor::ResetSettings(const bool bPositions)
 	
 	if (bPositions)
 	{
-		constexpr int width = c_unitWidth * c_defaultWidthMul;
-		constexpr int height = c_unitHeight * c_defaultHeightMul;
-		const QSize size(width, height);
+		const QSize size(GetDefaultSize());
 		m_cpuOptions.m_size = size;
 		m_ramOptions.m_size = size;
 		m_diskOptions.m_size = size;
@@ -195,8 +377,8 @@ void PerformanceMonitor::ResetSettings(const bool bPositions)
 		const QRect screenGeometry = screen->geometry();
 		const int screenheight = screenGeometry.height();
 		const int screenWidth = screenGeometry.width();
-		QPoint addPoint(0, height);
-		QPoint startPosition(screenWidth - (width*1.2), 80);
+		QPoint addPoint(0, size.height());
+		QPoint startPosition(screenWidth - (size.width()*2/*1.2*/), 80);
 		
 		for (ChartOptions* options : optionsList)
 		{
@@ -249,14 +431,14 @@ void PerformanceMonitor::CreatePerfCounters()
 		if (ChartWidget* pDiscWidget = FindChart(m_diskOptions.m_optionName))
 		{
 			void* pTotalWriteCounter = nullptr;
-			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Read Time", 0, &pTotalWriteCounter);
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Write Time", 0, &pTotalWriteCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalWriteCounter)
 			{
 				ShowError("Cannot initialize disc write counter.");
 				return;
 			}
 			void* pTotalReadCounter = nullptr;
-			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Write Time", 0, &pTotalReadCounter);
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Read Time", 0, &pTotalReadCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalReadCounter)
 			{
 				ShowError("Cannot initialize disc read counter.");
@@ -275,14 +457,14 @@ void PerformanceMonitor::CreatePerfCounters()
 		if (ChartWidget* pNetWidget = FindChart(m_netOptions.m_optionName))
 		{
 			void* pTotalSentCounter = nullptr;
-			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Interface(*)\\Bytes Sent/sec", 0, &pTotalSentCounter);
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Adapter(*)\\Bytes Received/sec", 0, &pTotalSentCounter);	//Realtek Gaming 2.5Gbe Family Controller
 			if (pdhStatus != ERROR_SUCCESS || !pTotalSentCounter)
 			{
 				ShowError("Cannot initialize disc write counter.");
 				return;
 			}
 			void* pTotalReceivedCounter = nullptr;
-			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Interface(*)\\Bytes Received/sec", 0, &pTotalReceivedCounter);
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Adapter(*)\\Bytes Sent/sec", 0, &pTotalReceivedCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalReceivedCounter)
 			{
 				ShowError("Cannot initialize disc read counter.");
@@ -290,33 +472,6 @@ void PerformanceMonitor::CreatePerfCounters()
 			}
 			pNetWidget->SetCounters({ pTotalSentCounter, pTotalReceivedCounter });
 		}
-	}
-
-	if (ChartWidget* pRAMWidget = FindChart(m_ramOptions.m_optionName))
-	{
-		
-
-	//	auto j = statex.ullTotalVirtual;
-
-		// \Memory\Available Bytes
-		// \Memory\Committed Bytes
-		// \Memory\Available MBytes
-
-		/*void* pTotalSystemCounter = nullptr;
-		void* pTotalUserCounter = nullptr;
-		pdhStatus = PdhAddCounter(m_hQuery, L"\\Processor(_Total)\\% Privileged Time", 0, &pTotalSystemCounter);
-		if (pdhStatus != ERROR_SUCCESS || !pTotalSystemCounter)
-		{
-			ShowError("Cannot initialize CPU system counter.");
-			return;
-		}
-		pdhStatus = PdhAddCounter(m_hQuery, L"\\\\Processor(_Total)\\% User Time", 0, &pTotalUserCounter);
-		if (pdhStatus != ERROR_SUCCESS || !pTotalUserCounter)
-		{
-			ShowError("Cannot initialize CPU user counter.");
-			return;
-		}
-		pRAMWidget->SetCounters({ pTotalSystemCounter, pTotalUserCounter });*/
 	}
 }
 
@@ -369,7 +524,7 @@ void PerformanceMonitor::HandleTimeout()
 				{
 					PDH_FMT_COUNTERVALUE value;
 					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
-					values[i] = value.doubleValue-2;
+					values[i] = value.doubleValue;
 				}
 				pDiscWidget->AddData(values);
 			}
@@ -380,7 +535,24 @@ void PerformanceMonitor::HandleTimeout()
 				for (size_t i = 0, size = counters.size();i < size; i++)
 				{
 					PDH_FMT_COUNTERVALUE value;
-					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
+					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE, &ret, &value);
+					if (m_netOptions.m_bIgnoreSmallTrafic)
+					{
+						if (value.doubleValue < 1024)	// Ignore trafic smaller than 1KB.
+							value.doubleValue = 0;
+						else
+						{
+							// Our value is in bytes.
+							double bytes = value.doubleValue;
+							const NetworkBandwithItem& bandItem = c_BandwithList[m_netOptions.m_maxNetworkBandwidthIndex];
+							for (int i = 0; i < bandItem.m_magnitude; i++)
+							{
+								bytes /= 1024;
+							}
+							bytes *= 8;
+							value.doubleValue = (bytes*10 / bandItem.m_size) * 100;
+						}
+					}
 					values[i] = value.doubleValue;
 				}
 				pNetWidget->AddData(values); /// in bytes

@@ -23,10 +23,16 @@ private slots:
 	void HandleTimeout();
 private:
 	void CreateTrayActions();
+	void InitUiElements();
+	void ValidateData();
+	void LoadDataToUi();
+	void LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize,
+						 ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
 	void ResetSettings(const bool bPositions);
 	void CreatePerfCounters();
 	void ReleasePerfCounters();
 	void ShowError(const QString& errorMessage);
+	
 	ChartWidget* FindChart(const QString& accesibleName) const;
     Ui::PerformanceMonitorClass ui;
 

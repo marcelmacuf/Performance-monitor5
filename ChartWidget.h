@@ -2,6 +2,8 @@
 
 #include <QChartView>
 
+constexpr int c_DefaultUpdateInterval = 1;
+constexpr int c_DefaultTransparency = 90;	// %
 class ChartGlobalOptions
 {
 public:
@@ -11,9 +13,10 @@ public:
 		settings.beginGroup(m_optionName);
 		if (!settings.contains("Transparency"))
 			return false;	// Cannot find config file. Generate positions and colors.
-		m_transparency = settings.value("Transparency", 1.0).toDouble();
-		m_chartStyle = settings.value("CharStyle", eStyle1).value<ChartStyle>();
-		m_updateInterval = settings.value("UpdateInterval", 1).toInt();
+		m_transparency = settings.value("Transparency", c_DefaultTransparency).toInt();
+		m_processPriority = settings.value("ProcessPriority", eDefaultPriority).value<ProcessPriority>();
+		m_chartWindowStyle = settings.value("CharWindowStyle", eDefaultStyle).value<ChartWindowStyle>();
+		m_updateInterval = settings.value("UpdateInterval", c_DefaultUpdateInterval).toInt();
 		m_bAutostartWithWindows = settings.value("Autostart", true).toBool();
 		m_bPassThroughtMode = settings.value("PassThrough", true).toBool();
 		m_bAllwaysOnTheTop = settings.value("AllwaysOnTop", true).toBool();
@@ -25,7 +28,8 @@ public:
 	{
 		settings.beginGroup(m_optionName);
 		settings.setValue("Transparency", m_transparency);
-		settings.setValue("CharStyle", m_chartStyle);
+		settings.setValue("ProcessPriority", m_processPriority);
+		settings.setValue("CharWindowStyle", m_chartWindowStyle);
 		settings.setValue("UpdateInterval", m_updateInterval);
 		settings.setValue("Autostart", m_bAutostartWithWindows);
 		settings.setValue("PassThrough", m_bPassThroughtMode);
@@ -35,19 +39,22 @@ public:
 	}
 	void Reset()
 	{
-		m_transparency = 1.0;
-		m_chartStyle = eStyle1;
-		m_updateInterval = 1;
+		m_transparency = c_DefaultTransparency;
+		m_processPriority = eDefaultPriority;
+		m_chartWindowStyle = eDefaultStyle;
+		m_updateInterval = c_DefaultUpdateInterval;
 		m_bAutostartWithWindows = true;
 		m_bPassThroughtMode = true;
 		m_bAllwaysOnTheTop = true;
 		m_bAllwaysShowLabel = false;
 	}
 	const QString m_optionName;
-	enum ChartStyle { eStyle1, eStyle2, eStyle3 };
-	double m_transparency{ 1.0 };
-	ChartStyle m_chartStyle{ eStyle1 };
-	int m_updateInterval{ 1 };				// Seconds.
+	enum ChartWindowStyle : int { eFlat, eStyle2, eStyle3, eDefaultStyle = eFlat };
+	enum ProcessPriority : int { eBelowNormal, eNormal, eAboveNormal, eDefaultPriority = eNormal };
+	int m_transparency{ c_DefaultTransparency };	// in %
+	ProcessPriority m_processPriority{ eDefaultPriority };
+	ChartWindowStyle m_chartWindowStyle{ eDefaultStyle };
+	int m_updateInterval{ c_DefaultUpdateInterval };				// Seconds.
 	bool m_bAutostartWithWindows{ true };
 	bool m_bPassThroughtMode{ true };
 	bool m_bAllwaysOnTheTop{ true };
@@ -66,9 +73,10 @@ public:
 		settings.beginGroup(m_optionName);
 		m_position = settings.value("Position").value<QPoint>();
 		m_size = settings.value("Size").value<QSize>();
+		m_ChartType = settings.value("ChartType", eDefaultCharStyle).value<ChartStyle>();
 		m_backgroundColor = settings.value("BackgroundColor").value<QColor>();
 		m_lineColor = settings.value("LineColor").value<QColor>();
-		m_bLineStyleType = settings.value("LineStyle", true).toBool();
+		m_bManualForeground = settings.value("ManualForeground", true).toBool();
 		m_bDoubleLine = settings.value("DoubleLine", false).toBool();
 		m_bShowGraph = settings.value("ShowGraph", true).toBool();
 		const bool bRet = LoadOther(settings);
@@ -80,9 +88,10 @@ public:
 		settings.beginGroup(m_optionName);
 		settings.setValue("Position", m_position);
 		settings.setValue("Size", m_size);
+		settings.setValue("ChartType", m_ChartType);
 		settings.setValue("BackgroundColor", m_backgroundColor);
 		settings.setValue("LineColor", m_lineColor);
-		settings.setValue("LineStyle", m_bLineStyleType);
+		settings.setValue("ManualForeground", m_bManualForeground);
 		settings.setValue("DoubleLine", m_bDoubleLine);
 		settings.setValue("ShowGraph", m_bShowGraph);
 		SaveOther(settings);
@@ -92,7 +101,8 @@ public:
 	virtual void SaveOther(QSettings& settings) const {}
 	virtual void Reset()
 	{
-		m_bLineStyleType = true;
+		m_ChartType = eDefaultCharStyle;
+		m_bManualForeground = false;
 		m_bDoubleLine = false;
 		m_bShowGraph = true;
 	}
@@ -109,11 +119,13 @@ public:
 
 	const ChartGlobalOptions& m_chartGlobalOptions;
 	const QString m_optionName;
+	enum ChartStyle : int { eLine, ePile, eDefaultCharStyle = eLine };
 	QPoint m_position;
 	QSize m_size;
 	QColor m_backgroundColor;
 	QColor m_lineColor;
-	bool m_bLineStyleType{ true };
+	ChartStyle m_ChartType{ eDefaultCharStyle };
+	bool m_bManualForeground{ false };
 	bool m_bDoubleLine{ false };
 	bool m_bShowGraph{ true };
 };
@@ -160,6 +172,7 @@ public:
 	bool m_bShowSeparateGraphs{ false };
 };
 
+constexpr int c_DefaultMaxBandwithIndex = 7;	// 100 Mb.
 class ChartNetOptions : public ChartDoubleOptions
 {
 public:
@@ -168,7 +181,7 @@ public:
 	{
 		const bool bRet = ChartDoubleOptions::LoadOther(settings);
 		m_netInterface = settings.value("NetInterface").toString();
-		m_maxNetworkBandwidth = settings.value("MaxBandwith", 100000).toInt();;
+		m_maxNetworkBandwidthIndex = settings.value("MaxBandwith", c_DefaultMaxBandwithIndex).toInt();
 		m_bIgnoreSmallTrafic = settings.value("IgnoreSmallTrafic", false).toBool();
 		return bRet;
 	}
@@ -176,17 +189,17 @@ public:
 	{
 		ChartDoubleOptions::SaveOther(settings);
 		settings.setValue("NetInterface", m_netInterface);
-		settings.setValue("MaxBandwith", m_maxNetworkBandwidth);
+		settings.setValue("MaxBandwith", m_maxNetworkBandwidthIndex);
 		settings.setValue("IgnoreSmallTrafic", m_bIgnoreSmallTrafic);
 	}
 	void Reset() override
 	{
 		ChartDoubleOptions::Reset();
 		m_bIgnoreSmallTrafic = true;
-		m_maxNetworkBandwidth = 100000;
+		m_maxNetworkBandwidthIndex = c_DefaultMaxBandwithIndex;
 	}
 	QString m_netInterface;
-	int m_maxNetworkBandwidth{ 100000 };	// In Kb\s. Default 100 Mb\s
+	int m_maxNetworkBandwidthIndex{ c_DefaultMaxBandwithIndex };
 	bool m_bIgnoreSmallTrafic{ true };
 };
 

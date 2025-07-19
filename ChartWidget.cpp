@@ -3,12 +3,18 @@
 #include <QLineSeries>
 #include <QValueAxis>
 
+constexpr int c_XAxisRange = 60;
+constexpr double c_YAxisMin = 0.1;
+constexpr double c_YUnderValue = -2;
 ChartWidget::ChartWidget(const ChartOptions* pChartData)
 	: QChartView()
 {
-	m_firstData.reserve(61);
-	m_secondData.reserve(61);
-	setRenderHint(QPainter::Antialiasing);
+	m_firstData.reserve(c_XAxisRange+1);
+	m_secondData.reserve(c_XAxisRange+1);
+	const QPointF firstValue(c_XAxisRange, c_YUnderValue);
+	m_firstData.append(firstValue);
+	m_secondData.append(firstValue);
+	//setRenderHint(QPainter::Antialiasing);
 	setWindowFlags(Qt::FramelessWindowHint | Qt::ToolTip);
 	setAccessibleName(pChartData->m_optionName);
 	LoadSettings(pChartData);
@@ -53,7 +59,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 	pYAxis->setRange(0, 100);
 
 	QValueAxis* pXAxis = (QValueAxis*)axes[0];
-	pXAxis->setRange(0, 60);
+	pXAxis->setRange(0, c_XAxisRange);
 
 	const QBrush gridBrush(pChartData->GenerateGridColor(pChartData->m_backgroundColor));
 	QPen gridPen(gridBrush, 1, Qt::PenStyle::DotLine);
@@ -86,12 +92,15 @@ void ChartWidget::AddData(const double values[2])
 {
 	const auto MoveData = [](QVector<QPointF>& data)
 		{
+			QPointF& last = data.back();
+			if (last.y() < c_YAxisMin)
+				last.setY(c_YUnderValue);	// Move value under graph, so it will not be visible.
 			const QPointF sub(1.0, 0);
 			for (QPointF& point : data)
 			{
 				point -= sub;
 			}
-			if (const size_t dataSize = data.size(); dataSize > 60)
+			if (const size_t dataSize = data.size(); dataSize > c_XAxisRange)
 			{
 				for (size_t i = 0, size = dataSize - 1;i < size;i++)
 				{
@@ -100,9 +109,8 @@ void ChartWidget::AddData(const double values[2])
 				data.pop_back();
 			}
 		};
-
-	m_firstData.append(QPointF(61, values[0]));
-	m_secondData.append(QPointF(61, values[1]));
+	m_firstData.append(QPointF(c_XAxisRange+1, values[0]));
+	m_secondData.append(QPointF(c_XAxisRange+1, values[1]));
 	MoveData(m_firstData);
 	MoveData(m_secondData);
 

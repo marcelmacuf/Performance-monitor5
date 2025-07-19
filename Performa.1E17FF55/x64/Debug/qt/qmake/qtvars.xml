@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
 <Qt_DEFINES_>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_CHARTS_LIB;QT_OPENGLWIDGETS_LIB;QT_WIDGETS_LIB;QT_OPENGL_LIB;QT_GUI_LIB;QT_CORE_LIB</Qt_DEFINES_>
-<Qt_INCLUDEPATH_>"D:\Programing\Projects\Performance Monitor\Performa.1E17FF55\x64\Debug\qt\qmake";D:\Programing\Qt\6.9.1\msvc2022_64\include;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtCharts;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtOpenGLWidgets;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtWidgets;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtOpenGL;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtGui;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtCore;"D:\Programing\Projects\Performance Monitor\Performa.1E17FF55\x64\Debug\qt\qmake";D:\Programing\Qt\6.9.1\msvc2022_64\mkspecs\win32-msvc</Qt_INCLUDEPATH_>
+<Qt_INCLUDEPATH_>D:\Programing\Qt\6.9.1\msvc2022_64\include;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtCharts;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtOpenGLWidgets;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtWidgets;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtOpenGL;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtGui;D:\Programing\Qt\6.9.1\msvc2022_64\include\QtCore;D:\Programing\Qt\6.9.1\msvc2022_64\mkspecs\win32-msvc</Qt_INCLUDEPATH_>
 <Qt_STDCPP_>stdcpp17</Qt_STDCPP_>
 <Qt_RUNTIME_>MultiThreadedDebugDLL</Qt_RUNTIME_>
 <Qt_CL_OPTIONS_>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -permissive- -Zc:__cplusplus -Zc:externConstexpr -utf-8</Qt_CL_OPTIONS_>

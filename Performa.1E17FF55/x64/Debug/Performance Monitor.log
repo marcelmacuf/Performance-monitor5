@@ -1,13 +1,7 @@
 ﻿   Qt/MSBuild: 3.4.0.1
    Qt: 6.9.1
   uic PerformanceMonitor.ui
-  rcc PerformanceMonitor.qrc
-  stdafx.cpp
-  ChartWidget.cpp
-  PerformanceCounters.cpp
   PerformanceMonitor.cpp
   main.cpp
   moc_PerformanceMonitor.cpp
-  moc_ChartWidget.cpp
-  qrc_PerformanceMonitor.cpp
   Performance Monitor.vcxproj -> D:\Programing\Projects\Performance-monitor5\x64\Debug\Performance Monitor.exe
