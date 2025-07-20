@@ -1,0 +1,9 @@
+﻿   Qt/MSBuild: 3.4.0.1
+   Qt: 6.9.1
+  PerformanceMonitor.cpp
+  Generating code
+  9 of 967 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    8 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Performance Monitor.vcxproj -> D:\Programing\Projects\Performance-monitor5\x64\Release\Performance Monitor.exe

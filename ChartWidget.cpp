@@ -6,8 +6,8 @@
 constexpr int c_XAxisRange = 60;
 constexpr double c_YAxisMin = 0.1;
 constexpr double c_YUnderValue = -2;
-ChartWidget::ChartWidget(const ChartOptions* pChartData)
-	: QChartView()
+ChartWidget::ChartWidget(PerformanceMonitor* pPerfMonitor, const ChartOptions* pChartData)
+	: QChartView(), m_pPerfMonitor(pPerfMonitor)
 {
 	m_firstData.reserve(c_XAxisRange+1);
 	m_secondData.reserve(c_XAxisRange+1);
@@ -15,13 +15,14 @@ ChartWidget::ChartWidget(const ChartOptions* pChartData)
 	m_firstData.append(firstValue);
 	m_secondData.append(firstValue);
 	//setRenderHint(QPainter::Antialiasing);
-	setWindowFlags(Qt::FramelessWindowHint | Qt::ToolTip);
+	setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 	setAccessibleName(pChartData->m_optionName);
 	LoadSettings(pChartData);
 }
 
 ChartWidget::~ChartWidget()
 {
+	
 }
 
 void ChartWidget::LoadSettings(const ChartOptions* pChartData)
@@ -81,7 +82,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 	const ChartGlobalOptions& chartGlobalOptions = pChartData->m_chartGlobalOptions;
 	setWindowFlag(Qt::WindowStaysOnTopHint, chartGlobalOptions.m_bAllwaysOnTheTop);	// ale ked sa meni hodnota tak je potrebny nejaky refresh
 	setWindowFlag(Qt::WindowTransparentForInput, chartGlobalOptions.m_bPassThroughtMode);
-	setWindowOpacity(pChartData->m_chartGlobalOptions.m_transparency);
+	setWindowOpacity(0.01 * pChartData->m_chartGlobalOptions.m_transparency);
 
 	resize(pChartData->m_size);
 	move(pChartData->m_position);
@@ -126,5 +127,11 @@ void ChartWidget::AddData(const double values[2])
 	}
 
 	repaint();
+}
+
+void ChartWidget::SetPassThroughMode(const bool bPassThrough)
+{
+	setWindowFlag(Qt::WindowTransparentForInput, bPassThrough);
+	show();
 }
 

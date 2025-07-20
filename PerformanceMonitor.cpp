@@ -109,8 +109,9 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 {
 	ui.setupUi(this);
 	InitUiElements();
-	CreateTrayActions();
-	m_pTrayIcon->show();
+	connect(ui.buttonBox, &QDialogButtonBox::accepted, this, [this]() { SaveDataFromUi(); hide();});
+	connect(ui.buttonBox, &QDialogButtonBox::rejected, this, &PerformanceMonitor::hide);
+	connect(ui.pbReset, &QPushButton::released, this, &PerformanceMonitor::ResetUi);
 	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
 	if (m_globalOptions.Load(*m_pAppSettings))
 	{
@@ -121,14 +122,16 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	}
 	else
 	{
-		ResetSettings(true);
+		ResetSettings(m_globalOptions, m_cpuOptions, m_ramOptions, m_diskOptions, m_netOptions, true);
 	}
+	CreateTrayActions();
+	m_pTrayIcon->show();
 	ValidateData();
-	LoadDataToUi();
+	LoadDataToUi(m_globalOptions, m_cpuOptions,m_ramOptions,m_diskOptions, m_netOptions);
 	
 	for (ChartOptions* options : optionsList)
 	{
-		m_pGraphs.emplace_back(new ChartWidget(options));
+		m_pGraphs.emplace_back(new ChartWidget(this, options));
 	}
 
 	for (ChartWidget* pChartWidget : m_pGraphs)
@@ -157,16 +160,16 @@ void PerformanceMonitor::CreateTrayActions()
 
 	QAction* pPassThroughAction = new QAction(tr("&Pass-Through Mode"), this);
 	pPassThroughAction->setCheckable(true);
-	pPassThroughAction->setChecked(true);
-	connect(pPassThroughAction, &QAction::triggered, this, &QWidget::hide);
+	pPassThroughAction->setChecked(m_globalOptions.m_bPassThroughtMode);
+	connect(pPassThroughAction, &QAction::triggered, this, &PerformanceMonitor::PassThroughMode);
 
 	QAction* pBackUpAction = new QAction(tr("&Backup Positions"), this);
 	pBackUpAction->setIcon(pStyle->standardIcon(QStyle::SP_DialogSaveButton));
-	connect(pBackUpAction, &QAction::triggered, this, &QWidget::showNormal);
+	connect(pBackUpAction, &QAction::triggered, this, &PerformanceMonitor::BackUpPositions);
 
 	QAction* pRestoreAction = new QAction(tr("&Restore Positions"), this);
 	pRestoreAction->setIcon(pStyle->standardIcon(QStyle::SP_BrowserReload));
-	connect(pRestoreAction, &QAction::triggered, this, &QWidget::showNormal);
+	connect(pRestoreAction, &QAction::triggered, this, &PerformanceMonitor::RestorePositions);
 
 	QAction* pHelpAction = new QAction(tr("&Help"), this);
 	pHelpAction->setIcon(pStyle->standardIcon(QStyle::SP_TitleBarShadeButton));
@@ -296,36 +299,36 @@ void PerformanceMonitor::ValidateData()
 		m_netOptions.m_maxNetworkBandwidthIndex = c_DefaultMaxBandwithIndex;
 }
 
-void PerformanceMonitor::LoadDataToUi()
+void PerformanceMonitor::LoadDataToUi(const ChartGlobalOptions& globalOptions, const ChartCpuOptions& cpuOptions, const ChartOptions& ramOptions,
+									  const ChartDoubleOptions& diskOptions, const ChartNetOptions& netOptions)
 {
-	ui.chAutoStart->setChecked(m_globalOptions.m_bAutostartWithWindows);
-	ui.chPass->setChecked(m_globalOptions.m_bPassThroughtMode);
-	ui.chAllwaysTop->setChecked(m_globalOptions.m_bAllwaysOnTheTop);
-	ui.chShowLabel->setChecked(m_globalOptions.m_bAllwaysShowLabel);
-	const auto foundInterval = std::ranges::find_if(c_UpdateIntervals, [this](const auto& item) { return m_globalOptions.m_updateInterval == item.second;});
+	ui.chAutoStart->setChecked(globalOptions.m_bAutostartWithWindows);
+	ui.chPass->setChecked(globalOptions.m_bPassThroughtMode);
+	ui.chAllwaysTop->setChecked(globalOptions.m_bAllwaysOnTheTop);
+	ui.chShowLabel->setChecked(globalOptions.m_bAllwaysShowLabel);
+	const auto foundInterval = std::ranges::find_if(c_UpdateIntervals, [globalOptions](const auto& item) { return globalOptions.m_updateInterval == item.second;});
 	ui.cbUpdateInterval->setCurrentIndex(std::distance(std::begin(c_UpdateIntervals), foundInterval));
 
-	const auto foundPriority = std::ranges::find_if(c_Priorities, [this](const auto& item) { return m_globalOptions.m_processPriority == item.second;});
+	const auto foundPriority = std::ranges::find_if(c_Priorities, [globalOptions](const auto& item) { return globalOptions.m_processPriority == item.second;});
 	ui.cbPriority->setCurrentIndex(std::distance(std::begin(c_Priorities), foundPriority));
 
-	const int foundTransparency = ui.cbVisibility->findData(m_globalOptions.m_transparency);
+	const int foundTransparency = ui.cbVisibility->findData(globalOptions.m_transparency);
 	if (foundTransparency != -1)
 	{
 		ui.cbVisibility->setCurrentIndex(foundTransparency);
 	}
 
-	const auto foundStyle = std::ranges::find_if(c_WindowStyles, [this](const auto& item) { return m_globalOptions.m_chartWindowStyle == item.second;});
+	const auto foundStyle = std::ranges::find_if(c_WindowStyles, [globalOptions](const auto& item) { return globalOptions.m_chartWindowStyle == item.second;});
 	ui.cbStyle->setCurrentIndex(std::distance(std::begin(c_WindowStyles), foundStyle));
-	LoadDataToChart(m_cpuOptions, ui.showCPU, ui.graphCPU, ui.doubleLineCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
-	LoadDataToChart(m_ramOptions, ui.showRAM, ui.graphRAM, ui.doubleLineRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
-	LoadDataToChart(m_diskOptions, ui.showDisk, ui.graphDisk, ui.doubleLineDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
-	LoadDataToChart(m_netOptions, ui.showNET, ui.graphNET, ui.doubleLineNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
+	LoadDataToChart(cpuOptions, ui.showCPU, ui.graphCPU, ui.doubleLineCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
+	LoadDataToChart(ramOptions, ui.showRAM, ui.graphRAM, ui.doubleLineRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
+	LoadDataToChart(diskOptions, ui.showDisk, ui.graphDisk, ui.doubleLineDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
+	LoadDataToChart(netOptions, ui.showNET, ui.graphNET, ui.doubleLineNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
 
-	ui.showForEachCPU->setChecked(m_cpuOptions.m_bOneGraphForEachCore);
-	ui.separateGrpahsDisk->setChecked(m_diskOptions.m_bShowSeparateGraphs);
-	ui.separateGrpahsNET->setChecked(m_netOptions.m_bShowSeparateGraphs);
-	ui.maxBandwithNET->setCurrentIndex(m_netOptions.m_maxNetworkBandwidthIndex);
-
+	ui.showForEachCPU->setChecked(cpuOptions.m_bOneGraphForEachCore);
+	ui.separateGrpahsDisk->setChecked(diskOptions.m_bShowSeparateGraphs);
+	ui.separateGrpahsNET->setChecked(netOptions.m_bShowSeparateGraphs);
+	ui.maxBandwithNET->setCurrentIndex(netOptions.m_maxNetworkBandwidthIndex);
 }
 
 void PerformanceMonitor::LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize, 
@@ -347,19 +350,84 @@ void PerformanceMonitor::LoadDataToChart(const ChartOptions& options, QCheckBox*
 	}
 }
 
-void PerformanceMonitor::ResetSettings(const bool bPositions)
+void PerformanceMonitor::SaveDataFromUi()
 {
-	m_globalOptions.Reset();
-	m_cpuOptions.Reset();
-	m_ramOptions.Reset();
-	m_diskOptions.Reset();
-	m_netOptions.Reset();
+	m_globalOptions.m_bAutostartWithWindows = ui.chAutoStart->isChecked();
+	m_globalOptions.m_bPassThroughtMode = ui.chPass->isChecked();
+	m_globalOptions.m_bAllwaysOnTheTop = ui.chAllwaysTop->isChecked();
+	m_globalOptions.m_bAllwaysShowLabel = ui.chShowLabel->isChecked();
+	m_globalOptions.m_updateInterval = c_UpdateIntervals[ui.cbUpdateInterval->currentIndex()].second;
+	m_globalOptions.m_processPriority = c_Priorities[ui.cbPriority->currentIndex()].second;
+	m_globalOptions.m_transparency = ui.cbVisibility->currentData().toInt();
+	m_globalOptions.m_chartWindowStyle = c_WindowStyles[ui.cbStyle->currentIndex()].second;
+
+	SaveDataFromChart(m_cpuOptions, ui.showCPU, ui.graphCPU, ui.doubleLineCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
+	SaveDataFromChart(m_ramOptions, ui.showRAM, ui.graphRAM, ui.doubleLineRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
+	SaveDataFromChart(m_diskOptions, ui.showDisk, ui.graphDisk, ui.doubleLineDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
+	SaveDataFromChart(m_netOptions, ui.showNET, ui.graphNET, ui.doubleLineNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
+
+	m_cpuOptions.m_bOneGraphForEachCore = ui.showForEachCPU->isChecked();
+	m_diskOptions.m_bShowSeparateGraphs = ui.separateGrpahsDisk->isChecked();
+	m_netOptions.m_bShowSeparateGraphs = ui.separateGrpahsNET->isChecked();
+	m_netOptions.m_maxNetworkBandwidthIndex = ui.maxBandwithNET->currentIndex();
+
+	m_globalOptions.Save(*m_pAppSettings);
+	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
+	for (ChartOptions* pOptions : optionsList)
+	{
+		if (ChartWidget* pWidget = FindChart(pOptions->m_optionName))
+		{
+			pWidget->LoadSettings(pOptions);
+		}
+		pOptions->Save(*m_pAppSettings);
+	}
+	m_pAppSettings->sync();
+	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
+}
+
+void PerformanceMonitor::SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize, 
+										   ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground)
+{
+	options.m_bShowGraph = pVisible->isChecked();
+	options.m_bDoubleLine = pDoubleLine->isChecked();
+	options.m_bManualForeground = pManualForeground->isChecked();
+	options.m_backgroundColor = pBack->GetColor();
+	options.m_lineColor = pForeground->GetColor();
+
+	options.m_ChartType = c_GraphStyles[pGraph->currentIndex()].second;
+	options.m_size = pSize->currentData().toSize();
+}
+
+void PerformanceMonitor::ResetUi()
+{
+	ChartGlobalOptions globalOptions("GlobalOptions");
+	ChartCpuOptions cpuOptions(globalOptions, c_CPU);
+	ChartOptions ramOptions(globalOptions, c_RAM);
+	ChartDoubleOptions diskOptions(globalOptions, c_DISK);
+	ChartNetOptions netOptions(globalOptions, c_NET);
+	cpuOptions.m_position = m_cpuOptions.m_position;
+	ramOptions.m_position = m_ramOptions.m_position;
+	diskOptions.m_position = m_diskOptions.m_position;
+	netOptions.m_position = m_netOptions.m_position;
+
+	ResetSettings(globalOptions, cpuOptions, ramOptions, diskOptions, netOptions, false);
+	LoadDataToUi(globalOptions, cpuOptions, ramOptions, diskOptions, netOptions);
+}
+
+void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
+									   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions)
+{
+	globalOptions.Reset();
+	cpuOptions.Reset();
+	ramOptions.Reset();
+	diskOptions.Reset();
+	netOptions.Reset();
 	
-	m_cpuOptions.m_backgroundColor = c_CPUColor;
-	m_ramOptions.m_backgroundColor = c_RAMColor;
-	m_diskOptions.m_backgroundColor = c_DISKColor;
-	m_netOptions.m_backgroundColor = c_NETColor;
-	ChartOptions* const optionsList[4]{ &m_netOptions, &m_diskOptions, &m_ramOptions, &m_cpuOptions };
+	cpuOptions.m_backgroundColor = c_CPUColor;
+	ramOptions.m_backgroundColor = c_RAMColor;
+	diskOptions.m_backgroundColor = c_DISKColor;
+	netOptions.m_backgroundColor = c_NETColor;
+	ChartOptions* const optionsList[4]{ &netOptions, &diskOptions, &ramOptions, &cpuOptions };
 	for (ChartOptions* options : optionsList)
 	{
 		options->m_lineColor = options->GenerateLineColor(options->m_backgroundColor);
@@ -368,10 +436,10 @@ void PerformanceMonitor::ResetSettings(const bool bPositions)
 	if (bPositions)
 	{
 		const QSize size(GetDefaultSize());
-		m_cpuOptions.m_size = size;
-		m_ramOptions.m_size = size;
-		m_diskOptions.m_size = size;
-		m_netOptions.m_size = size;
+		cpuOptions.m_size = size;
+		ramOptions.m_size = size;
+		diskOptions.m_size = size;
+		netOptions.m_size = size;
 
 		const QScreen* screen = QGuiApplication::primaryScreen();
 		const QRect screenGeometry = screen->geometry();
@@ -386,7 +454,64 @@ void PerformanceMonitor::ResetSettings(const bool bPositions)
 			startPosition += addPoint;
 		}
 	}
-	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
+	if(&globalOptions == &m_globalOptions)
+		m_timer.setInterval(globalOptions.m_updateInterval * 1000);
+}
+
+void PerformanceMonitor::BackUpPosition(QWidget* pChartWidget)
+{
+	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
+	const QString& name = pChartWidget->accessibleName();
+	for (ChartOptions* pOptions : optionsList)
+	{
+		if (name == pOptions->m_optionName)
+		{
+			pOptions->m_position = pChartWidget->pos();
+		}
+	}
+}
+
+void PerformanceMonitor::BackUpPositions()
+{
+	m_globalOptions.Save(*m_pAppSettings);
+	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
+	for (ChartOptions* pOptions : optionsList)
+	{
+		if (ChartWidget* pWidget = FindChart(pOptions->m_optionName))
+		{
+			pOptions->m_position = pWidget->pos();
+		}
+		pOptions->Save(*m_pAppSettings);
+	}
+	m_pAppSettings->sync();
+}
+
+void PerformanceMonitor::RestorePositions()
+{
+	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
+	for (const ChartOptions* pOptions : optionsList)
+	{
+		if (ChartWidget* pWidget = FindChart(pOptions->m_optionName))
+		{
+			pWidget->move(pOptions->m_position);
+		}
+	}
+}
+
+void PerformanceMonitor::PassThroughMode()
+{
+	m_globalOptions.m_bPassThroughtMode = !m_globalOptions.m_bPassThroughtMode;
+	m_globalOptions.Save(*m_pAppSettings);
+	for (ChartWidget* pChartWidget : m_pGraphs)
+	{
+		pChartWidget->SetPassThroughMode(m_globalOptions.m_bPassThroughtMode);
+	}
+	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
+	for (ChartOptions* pOptions : optionsList)
+	{
+		pOptions->Save(*m_pAppSettings);
+	}
+	m_pAppSettings->sync();
 }
 
 void PerformanceMonitor::CreatePerfCounters()

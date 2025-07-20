@@ -11,6 +11,7 @@ class PerformanceMonitor : public QDialog
 public:
     PerformanceMonitor(QWidget *parent = nullptr);
     ~PerformanceMonitor();
+	void BackUpPosition(QWidget* pChartWidget);
 protected:
 	void closeEvent(QCloseEvent* event) override
 	{
@@ -21,14 +22,23 @@ protected:
 	}
 private slots:
 	void HandleTimeout();
+	void BackUpPositions();
+	void RestorePositions();
+	void PassThroughMode();
+	void SaveDataFromUi();
+	void ResetUi();
 private:
 	void CreateTrayActions();
 	void InitUiElements();
 	void ValidateData();
-	void LoadDataToUi();
+	void LoadDataToUi(const ChartGlobalOptions& globalOptions, const ChartCpuOptions& cpuOptions, const ChartOptions& ramOptions,
+					  const ChartDoubleOptions& diskOptions, const ChartNetOptions& netOptions);
 	void LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize,
 						 ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
-	void ResetSettings(const bool bPositions);
+	void SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize,
+						   ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
+	void ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
+					   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions);
 	void CreatePerfCounters();
 	void ReleasePerfCounters();
 	void ShowError(const QString& errorMessage);

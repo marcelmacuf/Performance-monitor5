@@ -1,19 +1,26 @@
 #pragma once
 
 #include <QChartView>
+#include <QPointer>
+
+class PerformanceMonitor;
 
 constexpr int c_DefaultUpdateInterval = 1;
 constexpr int c_DefaultTransparency = 90;	// %
 class ChartGlobalOptions
 {
 public:
-	ChartGlobalOptions(const QString& optionName) {}
+	ChartGlobalOptions(const QString& optionName) : m_optionName(optionName) {}
 	bool Load(QSettings& settings)
 	{
+		constexpr int checkValue = INT_MAX;
 		settings.beginGroup(m_optionName);
-		if (!settings.contains("Transparency"))
-			return false;	// Cannot find config file. Generate positions and colors.
-		m_transparency = settings.value("Transparency", c_DefaultTransparency).toInt();
+		m_transparency = settings.value("Transparency", INT_MAX).toInt();
+		if (m_transparency == checkValue)
+		{
+			m_transparency = c_DefaultTransparency;
+			return false;
+		}
 		m_processPriority = settings.value("ProcessPriority", eDefaultPriority).value<ProcessPriority>();
 		m_chartWindowStyle = settings.value("CharWindowStyle", eDefaultStyle).value<ChartWindowStyle>();
 		m_updateInterval = settings.value("UpdateInterval", c_DefaultUpdateInterval).toInt();
@@ -204,22 +211,30 @@ public:
 };
 
 
-class ChartWidget  : public QChartView
+class ChartWidget : public QChartView
 {
 	Q_OBJECT
 
 public:
-	ChartWidget(const ChartOptions* pChartData);
+	ChartWidget(PerformanceMonitor* pPerfMonitor, const ChartOptions* pChartData);
 	~ChartWidget();
 
 	void LoadSettings(const ChartOptions* pChartData);
 	void AddData(const double values[2]);
 
+	void SetPassThroughMode(const bool bPassThrough);
 	void SetCounters(const QVector<void*>& counters) { m_counters = counters; }
 	const QVector<void*>& GetCounters() const { return m_counters; }
+	bool event(QEvent* event) override
+	{
+		if (event->type() == QEvent::MouseButtonPress)
+			windowHandle()->startSystemMove();
+		return QChartView::event(event);
+	}
 private:
 	QVector<void*> m_counters;
 	QVector<QPointF> m_firstData;
 	QVector<QPointF> m_secondData;
+	const PerformanceMonitor* m_pPerfMonitor{ nullptr };
 };
 
