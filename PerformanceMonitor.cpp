@@ -582,14 +582,14 @@ void PerformanceMonitor::CreatePerfCounters()
 		if (ChartWidget* pNetWidget = FindChart(m_netOptions.m_optionName))
 		{
 			void* pTotalSentCounter = nullptr;
-			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Adapter(*)\\Bytes Received/sec", 0, &pTotalSentCounter);	//Realtek Gaming 2.5Gbe Family Controller
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Interface(*)\\Bytes Received/sec", 0, &pTotalSentCounter);	//Realtek Gaming 2.5Gbe Family Controller
 			if (pdhStatus != ERROR_SUCCESS || !pTotalSentCounter)
 			{
 				ShowError("Cannot initialize disc write counter.");
 				return;
 			}
 			void* pTotalReceivedCounter = nullptr;
-			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Adapter(*)\\Bytes Sent/sec", 0, &pTotalReceivedCounter);
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Interface(*)\\Bytes Sent/sec", 0, &pTotalReceivedCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalReceivedCounter)
 			{
 				ShowError("Cannot initialize disc read counter.");
