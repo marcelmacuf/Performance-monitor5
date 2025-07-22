@@ -118,6 +118,10 @@ public:
 		constexpr int c_lineColorScale = 85;
 		return QColor(std::min(255, srcColor.red() + c_lineColorScale), std::min(255, srcColor.green() + c_lineColorScale), std::min(255, srcColor.blue() + c_lineColorScale));
 	}
+	static QColor GenerateSecondLineColor(const QColor& srcColor)
+	{
+		return QColor(srcColor.blue(), srcColor.red(), srcColor.green());
+	}
 	static QColor GenerateGridColor(const QColor& srcColor)
 	{
 		constexpr int c_gridColorScale = 34;
@@ -231,10 +235,13 @@ public:
 			windowHandle()->startSystemMove();
 		return QChartView::event(event);
 	}
+	void SetFirstLineScale(const double firstGraphScale) { m_firstGraphScale = firstGraphScale; }
 private:
 	QVector<void*> m_counters;
 	QVector<QPointF> m_firstData;
 	QVector<QPointF> m_secondData;
+	QVector<QPointF> m_thirdData;
+	QVector<QPointF> m_fourthData;
 	const PerformanceMonitor* m_pPerfMonitor{ nullptr };
+	double m_firstGraphScale{ 1.0 };
 };
-

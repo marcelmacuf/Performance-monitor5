@@ -622,9 +622,14 @@ void PerformanceMonitor::HandleTimeout()
 				{
 					PDH_FMT_COUNTERVALUE value;
 					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
-					values[i] = value.doubleValue*3;
+					values[i] = value.doubleValue;
 				}
 				pCpuWidget->AddData(values);
+				SYSTEM_INFO sysinfo;
+				GetSystemInfo(&sysinfo);
+				const double numCPU = sysinfo.dwNumberOfProcessors;
+				constexpr double visibleCPUS = 4;
+				pCpuWidget->SetFirstLineScale(numCPU / visibleCPUS);
 			}
 			if (ChartWidget* pRAMWidget = FindChart(m_ramOptions.m_optionName))
 			{

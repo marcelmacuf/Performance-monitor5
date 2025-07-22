@@ -11,9 +11,13 @@ ChartWidget::ChartWidget(PerformanceMonitor* pPerfMonitor, const ChartOptions* p
 {
 	m_firstData.reserve(c_XAxisRange+1);
 	m_secondData.reserve(c_XAxisRange+1);
+	m_thirdData.reserve(c_XAxisRange + 1);
+	m_fourthData.reserve(c_XAxisRange + 1);
 	const QPointF firstValue(c_XAxisRange, c_YUnderValue);
 	m_firstData.append(firstValue);
 	m_secondData.append(firstValue);
+	m_thirdData.append(firstValue);
+	m_fourthData.append(firstValue);
 	//setRenderHint(QPainter::Antialiasing);
 	setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 	setAccessibleName(pChartData->m_optionName);
@@ -35,13 +39,28 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 		if (pOptions->m_bShowSeparateGraphs)
 			seriesCount = 1;
 	}
+	else if (const ChartCpuOptions* pCpuOptions = dynamic_cast<const ChartCpuOptions*>(pChartData))
+	{
+		if (pCpuOptions->m_bOneGraphForEachCore)
+			seriesCount = 1;
+		else
+			seriesCount = 4;
+	}
 	for (size_t i = 0; i < seriesCount; i++)
 	{
 		QLineSeries* pLineSeries = new QLineSeries(pChart);
 		QColor color = pChartData->m_lineColor;
-		if (i > 0)
+		if (i == 1)
 		{
 			color = pChartData->GenerateLineColor(pChartData->m_lineColor);
+		}
+		else if (i == 2)
+		{
+			color = pChartData->GenerateSecondLineColor(pChartData->m_lineColor);
+		}
+		else if (i == 3)
+		{
+			color = pChartData->GenerateLineColor(pChartData->GenerateSecondLineColor(pChartData->m_lineColor));
 		}
 		const QPen linePen(QBrush(color), pChartData->m_bDoubleLine ? 2 : 1);
 		pLineSeries->setPen(linePen);
@@ -110,15 +129,44 @@ void ChartWidget::AddData(const double values[2])
 				data.pop_back();
 			}
 		};
-	m_firstData.append(QPointF(c_XAxisRange+1, values[0]));
-	m_secondData.append(QPointF(c_XAxisRange+1, values[1]));
+	m_firstData.append(QPointF(c_XAxisRange+1, values[0] * m_firstGraphScale));
+	m_secondData.append(QPointF(c_XAxisRange+1, values[1] * m_firstGraphScale));
 	MoveData(m_firstData);
 	MoveData(m_secondData);
 
-	const QVector<QPointF>* data[]{ &m_firstData , &m_secondData };
-
 	QChart* pChart = chart();
 	const QList<QAbstractSeries*> series = pChart->series();
+
+	const auto GenerateSecondData= [](double input, const QPointF& last)
+	{
+		double yAxis = last.y();
+		if (yAxis < 100)
+		{
+			yAxis = c_YUnderValue;
+		}
+		else
+		{
+			yAxis = input;
+		}
+		return QPointF(last.x() + 0.5, yAxis);
+	};
+
+	if (series.size() > 2)
+	{
+		QPointF last1 = m_firstData.back();
+		if (last1.y() < 100)
+		{
+			last1.setY(c_YUnderValue);
+		}
+		m_thirdData.append(GenerateSecondData(values[0], m_firstData.back()));
+		m_fourthData.append(GenerateSecondData(values[1], m_secondData.back()));
+		MoveData(m_thirdData);
+		MoveData(m_fourthData);
+	}
+
+	const QVector<QPointF>* data[]{ &m_firstData , &m_secondData, &m_thirdData, &m_fourthData };
+
+	
 	for (size_t i = 0, seriesSize = series.size(); i < seriesSize && i < std::size(data);i++)
 	{
 		QLineSeries* pLineSeries = static_cast<QLineSeries*>(series[i]);
