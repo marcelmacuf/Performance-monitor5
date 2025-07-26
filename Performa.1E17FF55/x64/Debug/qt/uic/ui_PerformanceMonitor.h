@@ -21,7 +21,6 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QWidget>
@@ -34,7 +33,6 @@ class Ui_PerformanceMonitorClass
 public:
     QGridLayout *gridLayout;
     QDialogButtonBox *buttonBox;
-    QPushButton *pbReset;
     QTabWidget *tabWidget;
     QWidget *TabGeneral;
     QGridLayout *gridLayout_3;
@@ -123,14 +121,9 @@ public:
         gridLayout->setObjectName("gridLayout");
         buttonBox = new QDialogButtonBox(PerformanceMonitorClass);
         buttonBox->setObjectName("buttonBox");
-        buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok);
+        buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok|QDialogButtonBox::StandardButton::Reset);
 
         gridLayout->addWidget(buttonBox, 1, 1, 1, 1);
-
-        pbReset = new QPushButton(PerformanceMonitorClass);
-        pbReset->setObjectName("pbReset");
-
-        gridLayout->addWidget(pbReset, 1, 0, 1, 1);
 
         tabWidget = new QTabWidget(PerformanceMonitorClass);
         tabWidget->setObjectName("tabWidget");
@@ -501,7 +494,6 @@ public:
     void retranslateUi(QDialog *PerformanceMonitorClass)
     {
         PerformanceMonitorClass->setWindowTitle(QCoreApplication::translate("PerformanceMonitorClass", "Performance Monitor 5", nullptr));
-        pbReset->setText(QCoreApplication::translate("PerformanceMonitorClass", "Reset", nullptr));
         chAutoStart->setText(QCoreApplication::translate("PerformanceMonitorClass", "Autostart with Windows", nullptr));
         groupBox->setTitle(QCoreApplication::translate("PerformanceMonitorClass", "Pass-Through Mode. ", nullptr));
         chPass->setText(QString());

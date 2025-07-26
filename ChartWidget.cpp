@@ -3,6 +3,8 @@
 #include <QLineSeries>
 #include <QValueAxis>
 
+#include "PerformanceMonitor.h"
+
 constexpr int c_XAxisRange = 60;
 constexpr double c_YAxisMin = 0.1;
 constexpr double c_YUnderValue = -2;
@@ -32,6 +34,7 @@ ChartWidget::~ChartWidget()
 void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 {
 	QChart* pChart = new QChart;
+	pChart->setMinimumSize(m_pPerfMonitor->GetMinimumSize());
 	setChart(pChart);
 	size_t seriesCount = 2;
 	if (const ChartDoubleOptions* pOptions = dynamic_cast<const ChartDoubleOptions*>(pChartData))
@@ -102,7 +105,6 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 	setWindowFlag(Qt::WindowStaysOnTopHint, chartGlobalOptions.m_bAllwaysOnTheTop);	// ale ked sa meni hodnota tak je potrebny nejaky refresh
 	setWindowFlag(Qt::WindowTransparentForInput, chartGlobalOptions.m_bPassThroughtMode);
 	setWindowOpacity(0.01 * pChartData->m_chartGlobalOptions.m_transparency);
-
 	resize(pChartData->m_size);
 	move(pChartData->m_position);
 	setVisible(pChartData->m_bShowGraph);
@@ -148,7 +150,7 @@ void ChartWidget::AddData(const double values[2])
 		{
 			yAxis = input;
 		}
-		return QPointF(last.x() + 0.5, yAxis);
+		return QPointF(last.x()/* + 0.5*/, yAxis);
 	};
 
 	if (series.size() > 2)
@@ -181,5 +183,105 @@ void ChartWidget::SetPassThroughMode(const bool bPassThrough)
 {
 	setWindowFlag(Qt::WindowTransparentForInput, bPassThrough);
 	show();
+}
+
+bool ChartWidget::event(QEvent* pEvent)
+{
+	if (pEvent->type() == QEvent::MouseButtonPress)
+	{
+		const QMouseEvent* pMouseEvent = static_cast<QMouseEvent*>(pEvent);
+		if (pMouseEvent->button() == Qt::LeftButton)
+		{
+			windowHandle()->startSystemMove();
+			if (pMouseEvent->modifiers() & Qt::KeyboardModifier::ControlModifier)
+			{
+
+			}
+		}
+	}
+	else if (pEvent->type() == QEvent::MouseButtonRelease)
+	{
+		const QMouseEvent* pMouseEvent = static_cast<QMouseEvent*>(pEvent);
+		if (pMouseEvent->button() == Qt::LeftButton)
+		{
+			m_pPerfMonitor->BackUpPositions();
+		}
+		else if (pMouseEvent->button() == Qt::RightButton)
+		{
+			m_pPerfMonitor->ShowMenu(pMouseEvent->globalPosition().toPoint());
+		}
+	}
+	else if (pEvent->type() == QEvent::Move)
+	{
+		const QMoveEvent* pMoveEvent = static_cast<QMoveEvent*>(pEvent);
+		if (pMoveEvent->spontaneous())
+		{
+			constexpr int snappPixels = 5;
+			constexpr int snappDouble = snappPixels * 2;
+			constexpr int widgetRectSize = 1;
+			const QRect thisR = rect();
+			const QPoint originalPos = pos();
+			QPoint myPos(originalPos);
+			const QRect originRec(myPos, thisR.size());
+			const QRect originLeftRect(originRec.left() - snappPixels, originRec.top() - snappPixels, snappDouble, originRec.height() + snappDouble);
+			const QRect originTopRect(originRec.left() - snappPixels, originRec.top() - snappPixels, originRec.width() + snappDouble, snappDouble);
+			const QRect originRightRec(originRec.left() + originRec.width() - snappPixels, originRec.top() - snappPixels, snappDouble, originRec.height() + snappDouble);
+			const QRect originBottomRec(originRec.left() - snappPixels, originRec.top() + originRec.height() - snappPixels, originRec.width() + snappDouble, snappDouble);
+
+
+			const QVector<ChartWidget*>& graphs = m_pPerfMonitor->GetGraphs();
+			for (ChartWidget* pWidget : graphs)
+			{
+				if (pWidget == this)
+					continue;
+				const QRect widgetR = pWidget->rect();
+				const QPoint widgetPos = pWidget->pos();
+				const QRect widgetRect(widgetPos, widgetR.size());
+				const QRect widgetLeft(widgetRect.left(),										 widgetRect.top(), widgetRectSize, widgetRect.height());
+				const QRect widgetRight(widgetRect.left() - widgetRectSize + widgetRect.width(), widgetRect.top(), widgetRectSize, widgetRect.height());
+				const QRect widgetTop(widgetRect.left(),										   widgetRect.top(), widgetRect.width(), widgetRectSize);
+				const QRect widgetBottom(widgetRect.left(), widgetRect.top() - widgetRectSize + widgetRect.height(), widgetRect.width(), widgetRectSize);
+				if (originLeftRect.intersects(widgetLeft))
+				{
+					myPos.setX(widgetRect.left());
+				}
+				else if (originLeftRect.intersects(widgetRight))
+				{
+					myPos.setX(widgetRect.left() + widgetRect.width());
+				}
+				else if (originRightRec.intersects(widgetLeft))
+				{
+					myPos.setX(widgetRect.left() - originRec.width());
+				}
+				else if (originRightRec.intersects(widgetRight))
+				{
+					myPos.setX(widgetRect.left() + widgetRect.width() - originRec.width());
+				}
+
+
+				if (originTopRect.intersects(widgetTop))
+				{
+					myPos.setY(widgetRect.top());
+				}
+				else if (originTopRect.intersects(widgetBottom))
+				{
+					myPos.setY(widgetRect.top() + widgetRect.height());
+				}
+				else if (originBottomRec.intersects(widgetTop))
+				{
+					myPos.setY(widgetRect.top() - originRec.height());
+				}
+				else if (originBottomRec.intersects(widgetBottom))
+				{
+					myPos.setY(widgetRect.top() + widgetRect.height() - originRec.height());
+				}
+			}
+			move(myPos);
+			const QPoint& oldPos = pMoveEvent->oldPos();
+			const QPoint& newPos = pMoveEvent->pos();
+		}
+	}
+
+	return QChartView::event(pEvent);
 }
 

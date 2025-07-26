@@ -18,6 +18,7 @@ public:
 		m_transparency = settings.value("Transparency", INT_MAX).toInt();
 		if (m_transparency == checkValue)
 		{
+			settings.endGroup();
 			m_transparency = c_DefaultTransparency;
 			return false;
 		}
@@ -229,12 +230,7 @@ public:
 	void SetPassThroughMode(const bool bPassThrough);
 	void SetCounters(const QVector<void*>& counters) { m_counters = counters; }
 	const QVector<void*>& GetCounters() const { return m_counters; }
-	bool event(QEvent* event) override
-	{
-		if (event->type() == QEvent::MouseButtonPress)
-			windowHandle()->startSystemMove();
-		return QChartView::event(event);
-	}
+	bool event(QEvent* event) override;
 	void SetFirstLineScale(const double firstGraphScale) { m_firstGraphScale = firstGraphScale; }
 private:
 	QVector<void*> m_counters;
@@ -242,6 +238,6 @@ private:
 	QVector<QPointF> m_secondData;
 	QVector<QPointF> m_thirdData;
 	QVector<QPointF> m_fourthData;
-	const PerformanceMonitor* m_pPerfMonitor{ nullptr };
+	PerformanceMonitor* const m_pPerfMonitor{ nullptr };
 	double m_firstGraphScale{ 1.0 };
 };

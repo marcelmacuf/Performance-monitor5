@@ -11,22 +11,20 @@ class PerformanceMonitor : public QDialog
 public:
     PerformanceMonitor(QWidget *parent = nullptr);
     ~PerformanceMonitor();
-	void BackUpPosition(QWidget* pChartWidget);
+	QSize GetMinimumSize() const;
+	const QVector<ChartWidget*>& GetGraphs() const { return m_pGraphs; }
+public slots:
+	void BackUpPositions();
+	void ShowMenu(const QPoint& pos);
 protected:
-	void closeEvent(QCloseEvent* event) override
-	{
-		if (!event->spontaneous() || !isVisible())
-			return;
-		hide();
-		event->ignore();
-	}
+	void closeEvent(QCloseEvent* pVvent) override;
+	void showEvent(QShowEvent* pEvent) override;
 private slots:
 	void HandleTimeout();
-	void BackUpPositions();
 	void RestorePositions();
 	void PassThroughMode();
 	void SaveDataFromUi();
-	void ResetUi();
+	void ButtonBoxClicked(QAbstractButton* pButton);
 private:
 	void CreateTrayActions();
 	void InitUiElements();
@@ -39,6 +37,7 @@ private:
 						   ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
 	void ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
 					   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions);
+	void ResetUi();
 	void CreatePerfCounters();
 	void ReleasePerfCounters();
 	void ShowError(const QString& errorMessage);
@@ -56,7 +55,8 @@ private:
 	QVector<ChartWidget*> m_pGraphs;
 
 
-	QSystemTrayIcon* m_pTrayIcon;
+	QSystemTrayIcon* m_pTrayIcon{ nullptr };
+	QAction* m_pPassThroughAction{ nullptr };
 	
 	QTimer m_timer;
 	void* m_hQuery = nullptr;

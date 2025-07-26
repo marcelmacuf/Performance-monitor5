@@ -7,10 +7,9 @@
 #include <QValueAxis>
 #include <pdh.h>
 #include <pdhmsg.h>
-#include <__msvc_ranges_to.hpp>
 
-constexpr int c_unitWidth = 41;
-constexpr int c_unitHeight = 26;
+constexpr int c_unitWidth = 33;
+constexpr int c_unitHeight = 21;
 constexpr int c_defaultSizeIndex = 2;
 constexpr char c_CPU[]{ "CPU" };
 constexpr char c_RAM[]{ "RAM" };
@@ -109,9 +108,7 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 {
 	ui.setupUi(this);
 	InitUiElements();
-	connect(ui.buttonBox, &QDialogButtonBox::accepted, this, [this]() { SaveDataFromUi(); hide();});
-	connect(ui.buttonBox, &QDialogButtonBox::rejected, this, &PerformanceMonitor::hide);
-	connect(ui.pbReset, &QPushButton::released, this, &PerformanceMonitor::ResetUi);
+	connect(ui.buttonBox, &QDialogButtonBox::clicked, this, &PerformanceMonitor::ButtonBoxClicked);
 	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
 	if (m_globalOptions.Load(*m_pAppSettings))
 	{
@@ -127,7 +124,7 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	CreateTrayActions();
 	m_pTrayIcon->show();
 	ValidateData();
-	LoadDataToUi(m_globalOptions, m_cpuOptions,m_ramOptions,m_diskOptions, m_netOptions);
+	//LoadDataToUi(m_globalOptions, m_cpuOptions,m_ramOptions,m_diskOptions, m_netOptions);
 	
 	for (ChartOptions* options : optionsList)
 	{
@@ -156,12 +153,12 @@ void PerformanceMonitor::CreateTrayActions()
 	QStyle* pStyle = style();
 	QAction* pSettingsAction = new QAction(tr("&Settings..."), this);
 	pSettingsAction->setIcon(pStyle->standardIcon(QStyle::SP_FileDialogContentsView));
-	connect(pSettingsAction, &QAction::triggered, this, &QWidget::showNormal);
+	connect(pSettingsAction, &QAction::triggered, this, [this]() {if (!isVisible()) { showNormal(); }});
 
-	QAction* pPassThroughAction = new QAction(tr("&Pass-Through Mode"), this);
-	pPassThroughAction->setCheckable(true);
-	pPassThroughAction->setChecked(m_globalOptions.m_bPassThroughtMode);
-	connect(pPassThroughAction, &QAction::triggered, this, &PerformanceMonitor::PassThroughMode);
+	m_pPassThroughAction = new QAction(tr("&Pass-Through Mode"), this);
+	m_pPassThroughAction->setCheckable(true);
+	m_pPassThroughAction->setChecked(m_globalOptions.m_bPassThroughtMode);
+	connect(m_pPassThroughAction, &QAction::triggered, this, &PerformanceMonitor::PassThroughMode);
 
 	QAction* pBackUpAction = new QAction(tr("&Backup Positions"), this);
 	pBackUpAction->setIcon(pStyle->standardIcon(QStyle::SP_DialogSaveButton));
@@ -186,7 +183,7 @@ void PerformanceMonitor::CreateTrayActions()
 	QMenu* pTrayIconMenu = new QMenu(this);
 	pTrayIconMenu->addAction(pSettingsAction);
 	pTrayIconMenu->addSeparator();
-	pTrayIconMenu->addAction(pPassThroughAction);
+	pTrayIconMenu->addAction(m_pPassThroughAction);
 	pTrayIconMenu->addSeparator();
 	pTrayIconMenu->addAction(pBackUpAction);
 	pTrayIconMenu->addAction(pRestoreAction);
@@ -354,6 +351,7 @@ void PerformanceMonitor::SaveDataFromUi()
 {
 	m_globalOptions.m_bAutostartWithWindows = ui.chAutoStart->isChecked();
 	m_globalOptions.m_bPassThroughtMode = ui.chPass->isChecked();
+	m_pPassThroughAction->setChecked(m_globalOptions.m_bPassThroughtMode);
 	m_globalOptions.m_bAllwaysOnTheTop = ui.chAllwaysTop->isChecked();
 	m_globalOptions.m_bAllwaysShowLabel = ui.chShowLabel->isChecked();
 	m_globalOptions.m_updateInterval = c_UpdateIntervals[ui.cbUpdateInterval->currentIndex()].second;
@@ -414,6 +412,27 @@ void PerformanceMonitor::ResetUi()
 	LoadDataToUi(globalOptions, cpuOptions, ramOptions, diskOptions, netOptions);
 }
 
+void PerformanceMonitor::ButtonBoxClicked(QAbstractButton* pButton)
+{
+	if (ui.buttonBox->button(QDialogButtonBox::StandardButton::Ok) == pButton)
+	{
+		SaveDataFromUi();
+		hide();
+	}
+	else if (ui.buttonBox->button(QDialogButtonBox::StandardButton::Apply) == pButton)
+	{
+		SaveDataFromUi();
+	}
+	else if (ui.buttonBox->button(QDialogButtonBox::StandardButton::Reset) == pButton)
+	{
+		ResetUi();
+	}
+	else if (ui.buttonBox->button(QDialogButtonBox::StandardButton::Cancel) == pButton)
+	{
+		hide();
+	}
+}
+
 void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
 									   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions)
 {
@@ -458,17 +477,9 @@ void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartC
 		m_timer.setInterval(globalOptions.m_updateInterval * 1000);
 }
 
-void PerformanceMonitor::BackUpPosition(QWidget* pChartWidget)
+QSize PerformanceMonitor::GetMinimumSize() const
 {
-	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
-	const QString& name = pChartWidget->accessibleName();
-	for (ChartOptions* pOptions : optionsList)
-	{
-		if (name == pOptions->m_optionName)
-		{
-			pOptions->m_position = pChartWidget->pos();
-		}
-	}
+	return{c_unitWidth, c_unitHeight};
 }
 
 void PerformanceMonitor::BackUpPositions()
@@ -486,6 +497,25 @@ void PerformanceMonitor::BackUpPositions()
 	m_pAppSettings->sync();
 }
 
+void PerformanceMonitor::ShowMenu(const QPoint& pos)
+{
+	QMenu* pMenu = m_pTrayIcon->contextMenu();
+	pMenu->popup(pos);
+}
+
+void PerformanceMonitor::closeEvent(QCloseEvent* event)
+{
+	if (!event->spontaneous() || !isVisible())
+		return;
+	hide();
+	event->ignore();
+}
+
+void PerformanceMonitor::showEvent(QShowEvent* pEvent)
+{
+	LoadDataToUi(m_globalOptions, m_cpuOptions, m_ramOptions, m_diskOptions, m_netOptions);
+}
+
 void PerformanceMonitor::RestorePositions()
 {
 	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
@@ -501,6 +531,7 @@ void PerformanceMonitor::RestorePositions()
 void PerformanceMonitor::PassThroughMode()
 {
 	m_globalOptions.m_bPassThroughtMode = !m_globalOptions.m_bPassThroughtMode;
+	m_pPassThroughAction->setChecked(m_globalOptions.m_bPassThroughtMode);
 	m_globalOptions.Save(*m_pAppSettings);
 	for (ChartWidget* pChartWidget : m_pGraphs)
 	{
@@ -624,6 +655,8 @@ void PerformanceMonitor::HandleTimeout()
 					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
 					values[i] = value.doubleValue;
 				}
+				// Second value is sum of both values.
+				values[1] += values[0];
 				pCpuWidget->AddData(values);
 				SYSTEM_INFO sysinfo;
 				GetSystemInfo(&sysinfo);
