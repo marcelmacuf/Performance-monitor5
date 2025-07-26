@@ -71,7 +71,8 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 	}
 
 	pChart->legend()->hide();
-	pChart->setMargins(QMargins());
+	constexpr int marginToHideAxis = -2;
+	pChart->setMargins(QMargins(marginToHideAxis,0,0, marginToHideAxis));
 	pChart->layout()->setContentsMargins(0, 0, 0, 0);
 	pChart->setBackgroundRoundness(0);
 	pChart->setBackgroundBrush(QBrush(pChartData->m_backgroundColor));
@@ -93,7 +94,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 		pAxis->setTitleVisible(false);
 		pAxis->setLabelsVisible(false);
 		pAxis->setGridLineVisible(true);
-		pAxis->setMinorGridLineVisible(true);
+		pAxis->setMinorGridLineVisible(false);
 		pAxis->setLineVisible(false);
 		pAxis->setGridLinePen(gridPen);
 		QValueAxis* pValueAxis = static_cast<QValueAxis*>(pAxis);
