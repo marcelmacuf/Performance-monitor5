@@ -19,12 +19,15 @@ public slots:
 protected:
 	void closeEvent(QCloseEvent* pVvent) override;
 	void showEvent(QShowEvent* pEvent) override;
+	void reject();
 private slots:
 	void HandleTimeout();
 	void RestorePositions();
 	void PassThroughMode();
 	void SaveDataFromUi();
 	void ButtonBoxClicked(QAbstractButton* pButton);
+	void About();
+	void Help();
 private:
 	void CreateTrayActions();
 	void InitUiElements();

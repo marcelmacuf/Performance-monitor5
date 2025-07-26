@@ -65,7 +65,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 		{
 			color = pChartData->GenerateLineColor(pChartData->GenerateSecondLineColor(pChartData->m_lineColor));
 		}
-		const QPen linePen(QBrush(color), pChartData->m_bDoubleLine ? 2 : 1);
+		const QPen linePen(QBrush(color), pChartData->m_bDoubleLine ? 1 : 0);
 		pLineSeries->setPen(linePen);
 		pChart->addSeries(pLineSeries);
 	}
@@ -132,7 +132,7 @@ void ChartWidget::AddData(const double values[2])
 				data.pop_back();
 			}
 		};
-	m_firstData.append(QPointF(c_XAxisRange+1, values[0] * m_firstGraphScale));
+	m_firstData.append(QPointF(c_XAxisRange+1,values[0] * m_firstGraphScale));
 	m_secondData.append(QPointF(c_XAxisRange+1, values[1] * m_firstGraphScale));
 	MoveData(m_firstData);
 	MoveData(m_secondData);

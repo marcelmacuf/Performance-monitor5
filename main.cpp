@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
 	QCoreApplication::setOrganizationDomain("ksb-csr.net");
 	QCoreApplication::setApplicationName("Performance monitor 5");
     PerformanceMonitor window;
-    window.move(1200, 500);
     window.show();
     return app.exec();
 }

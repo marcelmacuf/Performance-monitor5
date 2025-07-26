@@ -170,11 +170,11 @@ void PerformanceMonitor::CreateTrayActions()
 
 	QAction* pHelpAction = new QAction(tr("&Help"), this);
 	pHelpAction->setIcon(pStyle->standardIcon(QStyle::SP_TitleBarShadeButton));
-	connect(pHelpAction, &QAction::triggered, this, &QWidget::showNormal);
+	connect(pHelpAction, &QAction::triggered, this, &PerformanceMonitor::Help);
 
 	QAction* pAboutAction = new QAction(tr("&About"), this);
 	pAboutAction->setIcon(pStyle->standardIcon(QStyle::SP_TitleBarContextHelpButton));
-	connect(pAboutAction, &QAction::triggered, this, &QWidget::showNormal);
+	connect(pAboutAction, &QAction::triggered, this, &PerformanceMonitor::About);
 
 	QAction* pExitAction = new QAction(tr("&Exit"), this);
 	pExitAction->setIcon(pStyle->standardIcon(QStyle::SP_TabCloseButton));
@@ -197,6 +197,7 @@ void PerformanceMonitor::CreateTrayActions()
 	m_pTrayIcon->setIcon(windowIcon());
 	m_pTrayIcon->setToolTip("Performance Monitor 5");
 	m_pTrayIcon->setContextMenu(pTrayIconMenu);
+	connect(m_pTrayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {if (reason == QSystemTrayIcon::DoubleClick) showNormal();});
 }
 
 void PerformanceMonitor::InitUiElements()
@@ -432,6 +433,16 @@ void PerformanceMonitor::ButtonBoxClicked(QAbstractButton* pButton)
 		hide();
 	}
 }
+#include <QDesktopServices>
+void PerformanceMonitor::About()
+{
+	QMessageBox::about(this, "About Performance Monitor 5", "This program shows Processor, Memory, Disk and Network utilization on Windows systems. \n Created by Ferry.");
+}
+
+void PerformanceMonitor::Help()
+{
+	QDesktopServices::openUrl(QUrl("https://ksb-csr.net"));
+}
 
 void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
 									   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions)
@@ -514,6 +525,11 @@ void PerformanceMonitor::closeEvent(QCloseEvent* event)
 void PerformanceMonitor::showEvent(QShowEvent* pEvent)
 {
 	LoadDataToUi(m_globalOptions, m_cpuOptions, m_ramOptions, m_diskOptions, m_netOptions);
+}
+
+void PerformanceMonitor::reject()
+{
+	hide();
 }
 
 void PerformanceMonitor::RestorePositions()
