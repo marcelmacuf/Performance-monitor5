@@ -6,7 +6,7 @@
 #include "PerformanceMonitor.h"
 
 constexpr int c_XAxisRange = 60;
-constexpr double c_YAxisMin = 0.1;
+constexpr double c_YAxisMin = 0.0;
 constexpr double c_YUnderValue = -2;
 ChartWidget::ChartWidget(PerformanceMonitor* pPerfMonitor, const ChartOptions* pChartData)
 	: QChartView(), m_pPerfMonitor(pPerfMonitor)
@@ -65,7 +65,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 		{
 			color = pChartData->GenerateLineColor(pChartData->GenerateSecondLineColor(pChartData->m_lineColor));
 		}
-		const QPen linePen(QBrush(color), pChartData->m_bDoubleLine ? 1 : 0);
+		const QPen linePen(QBrush(color), pChartData->m_lineSize);
 		pLineSeries->setPen(linePen);
 		pChart->addSeries(pLineSeries);
 	}
@@ -86,7 +86,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 	pXAxis->setRange(0, c_XAxisRange);
 
 	const QBrush gridBrush(pChartData->GenerateGridColor(pChartData->m_backgroundColor));
-	QPen gridPen(gridBrush, 1, Qt::PenStyle::DotLine);
+	QPen gridPen(gridBrush, pChartData->m_lineSize, Qt::PenStyle::DotLine);
 	for (size_t i = 0, axesSize = axes.size(); i < axesSize; i++)
 	{
 		QAbstractAxis* pAxis = axes[i];

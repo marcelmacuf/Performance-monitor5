@@ -229,6 +229,13 @@ void PerformanceMonitor::InitUiElements()
 			pComboBox->addItem(sizeStr, windowSize);
 		}
 	}
+	for (QComboBox* pComboBox : { ui.lineSizeCPU, ui.lineSizeRAM, ui.lineSizeDisk, ui.lineSizeNET })
+	{
+		for (int i =0;i<4;i++)
+		{
+			pComboBox->addItem(QString::number(i+1), i);
+		}
+	}
 	for (QComboBox* pComboBox : { ui.graphCPU, ui.graphRAM, ui.graphDisk, ui.graphNET })
 	{
 		for (const auto&[graphStyle, dummy] : c_GraphStyles)
@@ -287,6 +294,8 @@ void PerformanceMonitor::ValidateData()
 				options.m_backgroundColor = defaultColor;
 			if (!options.m_lineColor.isValid())
 				options.m_lineColor = ChartOptions::GenerateLineColor(defaultColor);
+			if (options.m_lineSize > 3)
+				options.m_lineSize = c_defaultLineSize;
 		};
 	ValidateChartOptions(m_cpuOptions, c_CPUColor);
 	ValidateChartOptions(m_ramOptions, c_RAMColor);
@@ -318,10 +327,10 @@ void PerformanceMonitor::LoadDataToUi(const ChartGlobalOptions& globalOptions, c
 
 	const auto foundStyle = std::ranges::find_if(c_WindowStyles, [globalOptions](const auto& item) { return globalOptions.m_chartWindowStyle == item.second;});
 	ui.cbStyle->setCurrentIndex(std::distance(std::begin(c_WindowStyles), foundStyle));
-	LoadDataToChart(cpuOptions, ui.showCPU, ui.graphCPU, ui.doubleLineCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
-	LoadDataToChart(ramOptions, ui.showRAM, ui.graphRAM, ui.doubleLineRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
-	LoadDataToChart(diskOptions, ui.showDisk, ui.graphDisk, ui.doubleLineDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
-	LoadDataToChart(netOptions, ui.showNET, ui.graphNET, ui.doubleLineNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
+	LoadDataToChart(cpuOptions, ui.showCPU, ui.graphCPU, ui.lineSizeCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
+	LoadDataToChart(ramOptions, ui.showRAM, ui.graphRAM, ui.lineSizeRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
+	LoadDataToChart(diskOptions, ui.showDisk, ui.graphDisk, ui.lineSizeDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
+	LoadDataToChart(netOptions, ui.showNET, ui.graphNET, ui.lineSizeNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
 
 	ui.showForEachCPU->setChecked(cpuOptions.m_bOneGraphForEachCore);
 	ui.separateGrpahsDisk->setChecked(diskOptions.m_bShowSeparateGraphs);
@@ -329,11 +338,15 @@ void PerformanceMonitor::LoadDataToUi(const ChartGlobalOptions& globalOptions, c
 	ui.maxBandwithNET->setCurrentIndex(netOptions.m_maxNetworkBandwidthIndex);
 }
 
-void PerformanceMonitor::LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize, 
+void PerformanceMonitor::LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QComboBox* pLineSize, QComboBox* pSize,
 										 ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground)
 {
 	pVisible->setChecked(options.m_bShowGraph);
-	pDoubleLine->setChecked(options.m_bDoubleLine);
+	const int foundLineSize = pLineSize->findData(options.m_lineSize);
+	if (foundLineSize != -1)
+	{
+		pLineSize->setCurrentIndex(foundLineSize);
+	}
 	pManualForeground->setChecked(options.m_bManualForeground);
 	pBack->SetColor(options.m_backgroundColor);
 	pForeground->SetColor(options.m_lineColor);
@@ -360,10 +373,10 @@ void PerformanceMonitor::SaveDataFromUi()
 	m_globalOptions.m_transparency = ui.cbVisibility->currentData().toInt();
 	m_globalOptions.m_chartWindowStyle = c_WindowStyles[ui.cbStyle->currentIndex()].second;
 
-	SaveDataFromChart(m_cpuOptions, ui.showCPU, ui.graphCPU, ui.doubleLineCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
-	SaveDataFromChart(m_ramOptions, ui.showRAM, ui.graphRAM, ui.doubleLineRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
-	SaveDataFromChart(m_diskOptions, ui.showDisk, ui.graphDisk, ui.doubleLineDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
-	SaveDataFromChart(m_netOptions, ui.showNET, ui.graphNET, ui.doubleLineNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
+	SaveDataFromChart(m_cpuOptions, ui.showCPU, ui.graphCPU, ui.lineSizeCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
+	SaveDataFromChart(m_ramOptions, ui.showRAM, ui.graphRAM, ui.lineSizeRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
+	SaveDataFromChart(m_diskOptions, ui.showDisk, ui.graphDisk, ui.lineSizeDisk, ui.sizeDisk, ui.pbBackDisk, ui.chDiskManual, ui.pbLineDisk);
+	SaveDataFromChart(m_netOptions, ui.showNET, ui.graphNET, ui.lineSizeNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
 
 	m_cpuOptions.m_bOneGraphForEachCore = ui.showForEachCPU->isChecked();
 	m_diskOptions.m_bShowSeparateGraphs = ui.separateGrpahsDisk->isChecked();
@@ -384,11 +397,11 @@ void PerformanceMonitor::SaveDataFromUi()
 	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
 }
 
-void PerformanceMonitor::SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize, 
+void PerformanceMonitor::SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QComboBox* pLineSize, QComboBox* pSize,
 										   ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground)
 {
 	options.m_bShowGraph = pVisible->isChecked();
-	options.m_bDoubleLine = pDoubleLine->isChecked();
+	options.m_lineSize = pLineSize->currentData().toInt();
 	options.m_bManualForeground = pManualForeground->isChecked();
 	options.m_backgroundColor = pBack->GetColor();
 	options.m_lineColor = pForeground->GetColor();
@@ -609,6 +622,13 @@ void PerformanceMonitor::CreatePerfCounters()
 				ShowError("Cannot initialize disc write counter.");
 				return;
 			}
+			void* pAverageWriteQCounter = nullptr;
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\Avg. Disk Write Queue Length", 0, &pAverageWriteQCounter);
+			if (pdhStatus != ERROR_SUCCESS || !pAverageWriteQCounter)
+			{
+				ShowError("Cannot initialize disc write counter.");
+				return;
+			}
 			void* pTotalReadCounter = nullptr;
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Read Time", 0, &pTotalReadCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalReadCounter)
@@ -616,7 +636,14 @@ void PerformanceMonitor::CreatePerfCounters()
 				ShowError("Cannot initialize disc read counter.");
 				return;
 			}
-			pDiscWidget->SetCounters({ pTotalWriteCounter, pTotalReadCounter });
+			void* pAverageReadQCounter = nullptr;
+			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\Avg. Disk Read Queue Length", 0, &pAverageReadQCounter);
+			if (pdhStatus != ERROR_SUCCESS || !pAverageReadQCounter)
+			{
+				ShowError("Cannot initialize disc write counter.");
+				return;
+			}
+			pDiscWidget->SetCounters({ pTotalReadCounter, pAverageReadQCounter,pTotalWriteCounter, pAverageWriteQCounter });
 		}
 	}
 
@@ -699,11 +726,19 @@ void PerformanceMonitor::HandleTimeout()
 			{
 				const QVector<void*>& counters = pDiscWidget->GetCounters();
 				double values[2]{};
-				for (size_t i = 0, size = counters.size();i < size; i++)
+				for (size_t i = 0, k = 0, size = counters.size() / 2; i < size; i++, k++)
 				{
 					PDH_FMT_COUNTERVALUE value;
-					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
-					values[i] = value.doubleValue;
+					status = PdhGetFormattedCounterValue(counters[i*2], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
+					values[k] = value.doubleValue;
+
+					PDH_FMT_COUNTERVALUE value2;
+					status = PdhGetFormattedCounterValue(counters[(i*2) + 1], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value2);
+					if (values[k] > 100)
+					{
+						values[k] /= value2.doubleValue;
+						values[k] = min(values[k], 100);
+					}
 				}
 				pDiscWidget->AddData(values);
 			}
@@ -729,7 +764,7 @@ void PerformanceMonitor::HandleTimeout()
 								bytes /= 1024;
 							}
 							bytes *= 8;
-							value.doubleValue = (bytes*10 / bandItem.m_size) * 100;
+							value.doubleValue = (bytes / bandItem.m_size) * 100;
 						}
 					}
 					values[i] = value.doubleValue;

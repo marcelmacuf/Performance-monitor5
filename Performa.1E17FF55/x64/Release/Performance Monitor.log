@@ -1,9 +1,13 @@
 ﻿   Qt/MSBuild: 3.4.0.1
    Qt: 6.9.1
   ChartWidget.cpp
+  PerformanceMonitor.cpp
+  main.cpp
+  moc_ChartWidget.cpp
+  moc_PerformanceMonitor.cpp
   Generating code
-  3 of 1034 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+  106 of 1030 functions (10.3%) were compiled, the rest were copied from previous compilation.
+    8 functions were new in current compilation
+    93 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Performance Monitor.vcxproj -> D:\Programing\Projects\Performance-monitor5\x64\Release\Performance Monitor.exe

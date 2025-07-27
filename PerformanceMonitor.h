@@ -34,9 +34,9 @@ private:
 	void ValidateData();
 	void LoadDataToUi(const ChartGlobalOptions& globalOptions, const ChartCpuOptions& cpuOptions, const ChartOptions& ramOptions,
 					  const ChartDoubleOptions& diskOptions, const ChartNetOptions& netOptions);
-	void LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize,
+	void LoadDataToChart(const ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QComboBox* pLineSize, QComboBox* pSize,
 						 ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
-	void SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QCheckBox* pDoubleLine, QComboBox* pSize,
+	void SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QComboBox* pLineSize, QComboBox* pSize,
 						   ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
 	void ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
 					   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions);

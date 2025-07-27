@@ -31,7 +31,7 @@ QT_BEGIN_NAMESPACE
 class Ui_PerformanceMonitorClass
 {
 public:
-    QGridLayout *gridLayout;
+    QGridLayout *gridLayout_6;
     QDialogButtonBox *buttonBox;
     QTabWidget *tabWidget;
     QWidget *TabGeneral;
@@ -53,34 +53,37 @@ public:
     QLabel *label_4;
     QWidget *TabCpu;
     QGridLayout *gridLayout_2;
-    QCheckBox *showCPU;
-    QComboBox *graphCPU;
-    QCheckBox *doubleLineCPU;
-    QComboBox *sizeCPU;
-    ColorButton *pbBackCPU;
-    QLabel *label_8;
-    QCheckBox *chCPUManual;
-    ColorButton *pbLineCPU;
-    QLabel *label_9;
-    QCheckBox *showForEachCPU;
     QSpacerItem *verticalSpacer;
+    QCheckBox *chCPUManual;
+    QComboBox *lineSizeCPU;
+    ColorButton *pbLineCPU;
+    QComboBox *graphCPU;
+    ColorButton *pbBackCPU;
+    QCheckBox *showForEachCPU;
+    QLabel *label_8;
+    QComboBox *sizeCPU;
+    QCheckBox *showCPU;
+    QLabel *label_9;
+    QLabel *label_14;
     QWidget *tabMemory;
-    QGridLayout *gridLayout_8;
+    QGridLayout *gridLayout_4;
     QCheckBox *showRAM;
     QComboBox *graphRAM;
-    QCheckBox *doubleLineRAM;
     QComboBox *sizeRAM;
-    ColorButton *pbBackRAM;
     QLabel *label_10;
     QCheckBox *chRAMManual;
-    ColorButton *pbLineRAM;
     QLabel *label_11;
     QSpacerItem *verticalSpacer_5;
+    QComboBox *lineSizeRAM;
+    QLabel *label_15;
+    ColorButton *pbBackRAM;
+    ColorButton *pbLineRAM;
     QWidget *tabDisk;
-    QGridLayout *gridLayout_7;
+    QGridLayout *gridLayout_5;
     QCheckBox *showDisk;
     QComboBox *graphDisk;
-    QCheckBox *doubleLineDisk;
+    QComboBox *lineSizeDisk;
+    QLabel *label_16;
     QComboBox *sizeDisk;
     ColorButton *pbBackDisk;
     QLabel *label_12;
@@ -90,40 +93,41 @@ public:
     QCheckBox *separateGrpahsDisk;
     QSpacerItem *verticalSpacer_4;
     QWidget *tabNetwork;
-    QGridLayout *gridLayout_6;
-    QCheckBox *showNET;
-    QComboBox *graphNET;
-    QCheckBox *doubleLineNET;
+    QGridLayout *gridLayout;
     QComboBox *sizeNET;
-    ColorButton *pbBackNET;
-    QLabel *label_28;
-    QCheckBox *chNETManual;
-    ColorButton *pbLineNET;
-    QLabel *label_27;
+    QComboBox *graphNET;
+    QCheckBox *showNET;
     QCheckBox *separateGrpahsNET;
-    QComboBox *maxBandwithNET;
-    QLabel *label_6;
+    ColorButton *pbBackNET;
     QLabel *label_7;
+    QComboBox *lineSizeNET;
+    QLabel *label_17;
+    QLabel *label_27;
     QSpacerItem *verticalSpacer_3;
+    QCheckBox *chNETManual;
+    QComboBox *maxBandwithNET;
+    ColorButton *pbLineNET;
     QComboBox *maxBandwithNET_2;
+    QLabel *label_28;
+    QLabel *label_6;
 
     void setupUi(QDialog *PerformanceMonitorClass)
     {
         if (PerformanceMonitorClass->objectName().isEmpty())
             PerformanceMonitorClass->setObjectName("PerformanceMonitorClass");
-        PerformanceMonitorClass->resize(325, 402);
+        PerformanceMonitorClass->resize(336, 406);
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/PerformanceMonitor/Icon/AppIcon.ico"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
         PerformanceMonitorClass->setWindowIcon(icon);
-        gridLayout = new QGridLayout(PerformanceMonitorClass);
-        gridLayout->setSpacing(6);
-        gridLayout->setContentsMargins(11, 11, 11, 11);
-        gridLayout->setObjectName("gridLayout");
+        gridLayout_6 = new QGridLayout(PerformanceMonitorClass);
+        gridLayout_6->setSpacing(6);
+        gridLayout_6->setContentsMargins(11, 11, 11, 11);
+        gridLayout_6->setObjectName("gridLayout_6");
         buttonBox = new QDialogButtonBox(PerformanceMonitorClass);
         buttonBox->setObjectName("buttonBox");
         buttonBox->setStandardButtons(QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok|QDialogButtonBox::StandardButton::Reset);
 
-        gridLayout->addWidget(buttonBox, 1, 1, 1, 1);
+        gridLayout_6->addWidget(buttonBox, 2, 1, 1, 1);
 
         tabWidget = new QTabWidget(PerformanceMonitorClass);
         tabWidget->setObjectName("tabWidget");
@@ -218,41 +222,19 @@ public:
         gridLayout_2->setSpacing(6);
         gridLayout_2->setContentsMargins(11, 11, 11, 11);
         gridLayout_2->setObjectName("gridLayout_2");
-        showCPU = new QCheckBox(TabCpu);
-        showCPU->setObjectName("showCPU");
+        verticalSpacer = new QSpacerItem(224, 60, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        gridLayout_2->addWidget(showCPU, 0, 0, 1, 1);
-
-        graphCPU = new QComboBox(TabCpu);
-        graphCPU->setObjectName("graphCPU");
-
-        gridLayout_2->addWidget(graphCPU, 1, 0, 1, 1);
-
-        doubleLineCPU = new QCheckBox(TabCpu);
-        doubleLineCPU->setObjectName("doubleLineCPU");
-
-        gridLayout_2->addWidget(doubleLineCPU, 2, 0, 1, 1);
-
-        sizeCPU = new QComboBox(TabCpu);
-        sizeCPU->setObjectName("sizeCPU");
-
-        gridLayout_2->addWidget(sizeCPU, 3, 0, 1, 1);
-
-        pbBackCPU = new ColorButton(TabCpu);
-        pbBackCPU->setObjectName("pbBackCPU");
-        pbBackCPU->setFlat(true);
-
-        gridLayout_2->addWidget(pbBackCPU, 4, 0, 1, 1);
-
-        label_8 = new QLabel(TabCpu);
-        label_8->setObjectName("label_8");
-
-        gridLayout_2->addWidget(label_8, 4, 1, 1, 1);
+        gridLayout_2->addItem(verticalSpacer, 8, 0, 1, 2);
 
         chCPUManual = new QCheckBox(TabCpu);
         chCPUManual->setObjectName("chCPUManual");
 
         gridLayout_2->addWidget(chCPUManual, 5, 0, 1, 2);
+
+        lineSizeCPU = new QComboBox(TabCpu);
+        lineSizeCPU->setObjectName("lineSizeCPU");
+
+        gridLayout_2->addWidget(lineSizeCPU, 2, 0, 1, 1);
 
         pbLineCPU = new ColorButton(TabCpu);
         pbLineCPU->setObjectName("pbLineCPU");
@@ -260,232 +242,274 @@ public:
 
         gridLayout_2->addWidget(pbLineCPU, 6, 0, 1, 1);
 
-        label_9 = new QLabel(TabCpu);
-        label_9->setObjectName("label_9");
+        graphCPU = new QComboBox(TabCpu);
+        graphCPU->setObjectName("graphCPU");
 
-        gridLayout_2->addWidget(label_9, 6, 1, 1, 1);
+        gridLayout_2->addWidget(graphCPU, 1, 0, 1, 1);
+
+        pbBackCPU = new ColorButton(TabCpu);
+        pbBackCPU->setObjectName("pbBackCPU");
+        pbBackCPU->setFlat(true);
+
+        gridLayout_2->addWidget(pbBackCPU, 4, 0, 1, 1);
 
         showForEachCPU = new QCheckBox(TabCpu);
         showForEachCPU->setObjectName("showForEachCPU");
 
         gridLayout_2->addWidget(showForEachCPU, 7, 0, 1, 2);
 
-        verticalSpacer = new QSpacerItem(224, 60, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+        label_8 = new QLabel(TabCpu);
+        label_8->setObjectName("label_8");
 
-        gridLayout_2->addItem(verticalSpacer, 8, 0, 1, 2);
+        gridLayout_2->addWidget(label_8, 4, 1, 1, 1);
+
+        sizeCPU = new QComboBox(TabCpu);
+        sizeCPU->setObjectName("sizeCPU");
+
+        gridLayout_2->addWidget(sizeCPU, 3, 0, 1, 1);
+
+        showCPU = new QCheckBox(TabCpu);
+        showCPU->setObjectName("showCPU");
+
+        gridLayout_2->addWidget(showCPU, 0, 0, 1, 1);
+
+        label_9 = new QLabel(TabCpu);
+        label_9->setObjectName("label_9");
+
+        gridLayout_2->addWidget(label_9, 6, 1, 1, 1);
+
+        label_14 = new QLabel(TabCpu);
+        label_14->setObjectName("label_14");
+
+        gridLayout_2->addWidget(label_14, 2, 1, 1, 1);
 
         tabWidget->addTab(TabCpu, QString());
         tabMemory = new QWidget();
         tabMemory->setObjectName("tabMemory");
-        gridLayout_8 = new QGridLayout(tabMemory);
-        gridLayout_8->setSpacing(6);
-        gridLayout_8->setContentsMargins(11, 11, 11, 11);
-        gridLayout_8->setObjectName("gridLayout_8");
+        gridLayout_4 = new QGridLayout(tabMemory);
+        gridLayout_4->setSpacing(6);
+        gridLayout_4->setContentsMargins(11, 11, 11, 11);
+        gridLayout_4->setObjectName("gridLayout_4");
         showRAM = new QCheckBox(tabMemory);
         showRAM->setObjectName("showRAM");
 
-        gridLayout_8->addWidget(showRAM, 0, 0, 1, 1);
+        gridLayout_4->addWidget(showRAM, 0, 0, 1, 2);
 
         graphRAM = new QComboBox(tabMemory);
         graphRAM->setObjectName("graphRAM");
 
-        gridLayout_8->addWidget(graphRAM, 1, 0, 1, 1);
-
-        doubleLineRAM = new QCheckBox(tabMemory);
-        doubleLineRAM->setObjectName("doubleLineRAM");
-
-        gridLayout_8->addWidget(doubleLineRAM, 2, 0, 1, 1);
+        gridLayout_4->addWidget(graphRAM, 1, 0, 1, 2);
 
         sizeRAM = new QComboBox(tabMemory);
         sizeRAM->setObjectName("sizeRAM");
 
-        gridLayout_8->addWidget(sizeRAM, 3, 0, 1, 1);
+        gridLayout_4->addWidget(sizeRAM, 3, 0, 1, 2);
+
+        label_10 = new QLabel(tabMemory);
+        label_10->setObjectName("label_10");
+
+        gridLayout_4->addWidget(label_10, 4, 2, 1, 2);
+
+        chRAMManual = new QCheckBox(tabMemory);
+        chRAMManual->setObjectName("chRAMManual");
+
+        gridLayout_4->addWidget(chRAMManual, 5, 0, 1, 2);
+
+        label_11 = new QLabel(tabMemory);
+        label_11->setObjectName("label_11");
+
+        gridLayout_4->addWidget(label_11, 6, 2, 1, 2);
+
+        verticalSpacer_5 = new QSpacerItem(20, 106, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        gridLayout_4->addItem(verticalSpacer_5, 7, 1, 1, 1);
+
+        lineSizeRAM = new QComboBox(tabMemory);
+        lineSizeRAM->setObjectName("lineSizeRAM");
+
+        gridLayout_4->addWidget(lineSizeRAM, 2, 0, 1, 2);
+
+        label_15 = new QLabel(tabMemory);
+        label_15->setObjectName("label_15");
+
+        gridLayout_4->addWidget(label_15, 2, 2, 1, 2);
 
         pbBackRAM = new ColorButton(tabMemory);
         pbBackRAM->setObjectName("pbBackRAM");
         pbBackRAM->setFlat(true);
 
-        gridLayout_8->addWidget(pbBackRAM, 4, 0, 1, 1);
-
-        label_10 = new QLabel(tabMemory);
-        label_10->setObjectName("label_10");
-
-        gridLayout_8->addWidget(label_10, 4, 1, 1, 1);
-
-        chRAMManual = new QCheckBox(tabMemory);
-        chRAMManual->setObjectName("chRAMManual");
-
-        gridLayout_8->addWidget(chRAMManual, 5, 0, 1, 1);
+        gridLayout_4->addWidget(pbBackRAM, 4, 0, 1, 2);
 
         pbLineRAM = new ColorButton(tabMemory);
         pbLineRAM->setObjectName("pbLineRAM");
         pbLineRAM->setFlat(true);
 
-        gridLayout_8->addWidget(pbLineRAM, 6, 0, 1, 1);
-
-        label_11 = new QLabel(tabMemory);
-        label_11->setObjectName("label_11");
-
-        gridLayout_8->addWidget(label_11, 6, 1, 1, 1);
-
-        verticalSpacer_5 = new QSpacerItem(20, 106, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
-
-        gridLayout_8->addItem(verticalSpacer_5, 7, 0, 1, 1);
+        gridLayout_4->addWidget(pbLineRAM, 6, 0, 1, 2);
 
         tabWidget->addTab(tabMemory, QString());
         tabDisk = new QWidget();
         tabDisk->setObjectName("tabDisk");
-        gridLayout_7 = new QGridLayout(tabDisk);
-        gridLayout_7->setSpacing(6);
-        gridLayout_7->setContentsMargins(11, 11, 11, 11);
-        gridLayout_7->setObjectName("gridLayout_7");
+        gridLayout_5 = new QGridLayout(tabDisk);
+        gridLayout_5->setSpacing(6);
+        gridLayout_5->setContentsMargins(11, 11, 11, 11);
+        gridLayout_5->setObjectName("gridLayout_5");
         showDisk = new QCheckBox(tabDisk);
         showDisk->setObjectName("showDisk");
 
-        gridLayout_7->addWidget(showDisk, 0, 0, 1, 2);
+        gridLayout_5->addWidget(showDisk, 0, 0, 1, 1);
 
         graphDisk = new QComboBox(tabDisk);
         graphDisk->setObjectName("graphDisk");
 
-        gridLayout_7->addWidget(graphDisk, 1, 0, 1, 1);
+        gridLayout_5->addWidget(graphDisk, 1, 0, 1, 1);
 
-        doubleLineDisk = new QCheckBox(tabDisk);
-        doubleLineDisk->setObjectName("doubleLineDisk");
+        lineSizeDisk = new QComboBox(tabDisk);
+        lineSizeDisk->setObjectName("lineSizeDisk");
 
-        gridLayout_7->addWidget(doubleLineDisk, 2, 0, 1, 1);
+        gridLayout_5->addWidget(lineSizeDisk, 2, 0, 1, 1);
+
+        label_16 = new QLabel(tabDisk);
+        label_16->setObjectName("label_16");
+
+        gridLayout_5->addWidget(label_16, 2, 1, 1, 1);
 
         sizeDisk = new QComboBox(tabDisk);
         sizeDisk->setObjectName("sizeDisk");
 
-        gridLayout_7->addWidget(sizeDisk, 3, 0, 1, 1);
+        gridLayout_5->addWidget(sizeDisk, 3, 0, 1, 1);
 
         pbBackDisk = new ColorButton(tabDisk);
         pbBackDisk->setObjectName("pbBackDisk");
         pbBackDisk->setFlat(true);
 
-        gridLayout_7->addWidget(pbBackDisk, 4, 0, 1, 1);
+        gridLayout_5->addWidget(pbBackDisk, 4, 0, 1, 1);
 
         label_12 = new QLabel(tabDisk);
         label_12->setObjectName("label_12");
 
-        gridLayout_7->addWidget(label_12, 4, 1, 1, 1);
+        gridLayout_5->addWidget(label_12, 4, 1, 1, 1);
 
         chDiskManual = new QCheckBox(tabDisk);
         chDiskManual->setObjectName("chDiskManual");
 
-        gridLayout_7->addWidget(chDiskManual, 5, 0, 1, 2);
+        gridLayout_5->addWidget(chDiskManual, 5, 0, 1, 1);
 
         pbLineDisk = new ColorButton(tabDisk);
         pbLineDisk->setObjectName("pbLineDisk");
         pbLineDisk->setFlat(true);
 
-        gridLayout_7->addWidget(pbLineDisk, 6, 0, 1, 1);
+        gridLayout_5->addWidget(pbLineDisk, 6, 0, 1, 1);
 
         label_13 = new QLabel(tabDisk);
         label_13->setObjectName("label_13");
 
-        gridLayout_7->addWidget(label_13, 6, 1, 1, 1);
+        gridLayout_5->addWidget(label_13, 6, 1, 1, 1);
 
         separateGrpahsDisk = new QCheckBox(tabDisk);
         separateGrpahsDisk->setObjectName("separateGrpahsDisk");
 
-        gridLayout_7->addWidget(separateGrpahsDisk, 7, 0, 1, 2);
+        gridLayout_5->addWidget(separateGrpahsDisk, 7, 0, 1, 2);
 
         verticalSpacer_4 = new QSpacerItem(20, 80, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        gridLayout_7->addItem(verticalSpacer_4, 8, 1, 1, 1);
+        gridLayout_5->addItem(verticalSpacer_4, 8, 1, 1, 1);
 
         tabWidget->addTab(tabDisk, QString());
         tabNetwork = new QWidget();
         tabNetwork->setObjectName("tabNetwork");
-        gridLayout_6 = new QGridLayout(tabNetwork);
-        gridLayout_6->setSpacing(6);
-        gridLayout_6->setContentsMargins(11, 11, 11, 11);
-        gridLayout_6->setObjectName("gridLayout_6");
-        showNET = new QCheckBox(tabNetwork);
-        showNET->setObjectName("showNET");
+        gridLayout = new QGridLayout(tabNetwork);
+        gridLayout->setSpacing(6);
+        gridLayout->setContentsMargins(11, 11, 11, 11);
+        gridLayout->setObjectName("gridLayout");
+        sizeNET = new QComboBox(tabNetwork);
+        sizeNET->setObjectName("sizeNET");
 
-        gridLayout_6->addWidget(showNET, 0, 0, 1, 2);
+        gridLayout->addWidget(sizeNET, 3, 0, 1, 1);
 
         graphNET = new QComboBox(tabNetwork);
         graphNET->setObjectName("graphNET");
 
-        gridLayout_6->addWidget(graphNET, 1, 0, 1, 1);
+        gridLayout->addWidget(graphNET, 1, 0, 1, 1);
 
-        doubleLineNET = new QCheckBox(tabNetwork);
-        doubleLineNET->setObjectName("doubleLineNET");
+        showNET = new QCheckBox(tabNetwork);
+        showNET->setObjectName("showNET");
 
-        gridLayout_6->addWidget(doubleLineNET, 2, 0, 1, 2);
+        gridLayout->addWidget(showNET, 0, 0, 1, 1);
 
-        sizeNET = new QComboBox(tabNetwork);
-        sizeNET->setObjectName("sizeNET");
+        separateGrpahsNET = new QCheckBox(tabNetwork);
+        separateGrpahsNET->setObjectName("separateGrpahsNET");
 
-        gridLayout_6->addWidget(sizeNET, 3, 0, 1, 1);
+        gridLayout->addWidget(separateGrpahsNET, 7, 0, 1, 2);
 
         pbBackNET = new ColorButton(tabNetwork);
         pbBackNET->setObjectName("pbBackNET");
         pbBackNET->setFlat(true);
 
-        gridLayout_6->addWidget(pbBackNET, 4, 0, 1, 1);
+        gridLayout->addWidget(pbBackNET, 4, 0, 1, 1);
 
-        label_28 = new QLabel(tabNetwork);
-        label_28->setObjectName("label_28");
+        label_7 = new QLabel(tabNetwork);
+        label_7->setObjectName("label_7");
 
-        gridLayout_6->addWidget(label_28, 4, 1, 1, 1);
+        gridLayout->addWidget(label_7, 9, 0, 1, 1);
+
+        lineSizeNET = new QComboBox(tabNetwork);
+        lineSizeNET->setObjectName("lineSizeNET");
+
+        gridLayout->addWidget(lineSizeNET, 2, 0, 1, 1);
+
+        label_17 = new QLabel(tabNetwork);
+        label_17->setObjectName("label_17");
+
+        gridLayout->addWidget(label_17, 2, 1, 1, 1);
+
+        label_27 = new QLabel(tabNetwork);
+        label_27->setObjectName("label_27");
+
+        gridLayout->addWidget(label_27, 6, 1, 1, 1);
+
+        verticalSpacer_3 = new QSpacerItem(20, 80, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        gridLayout->addItem(verticalSpacer_3, 11, 1, 1, 1);
 
         chNETManual = new QCheckBox(tabNetwork);
         chNETManual->setObjectName("chNETManual");
 
-        gridLayout_6->addWidget(chNETManual, 5, 0, 1, 2);
+        gridLayout->addWidget(chNETManual, 5, 0, 1, 1);
+
+        maxBandwithNET = new QComboBox(tabNetwork);
+        maxBandwithNET->setObjectName("maxBandwithNET");
+
+        gridLayout->addWidget(maxBandwithNET, 8, 0, 1, 1);
 
         pbLineNET = new ColorButton(tabNetwork);
         pbLineNET->setObjectName("pbLineNET");
         pbLineNET->setFlat(true);
 
-        gridLayout_6->addWidget(pbLineNET, 6, 0, 1, 1);
-
-        label_27 = new QLabel(tabNetwork);
-        label_27->setObjectName("label_27");
-
-        gridLayout_6->addWidget(label_27, 6, 1, 1, 1);
-
-        separateGrpahsNET = new QCheckBox(tabNetwork);
-        separateGrpahsNET->setObjectName("separateGrpahsNET");
-
-        gridLayout_6->addWidget(separateGrpahsNET, 7, 0, 1, 2);
-
-        maxBandwithNET = new QComboBox(tabNetwork);
-        maxBandwithNET->setObjectName("maxBandwithNET");
-
-        gridLayout_6->addWidget(maxBandwithNET, 8, 0, 1, 1);
-
-        label_6 = new QLabel(tabNetwork);
-        label_6->setObjectName("label_6");
-
-        gridLayout_6->addWidget(label_6, 8, 1, 1, 1);
-
-        label_7 = new QLabel(tabNetwork);
-        label_7->setObjectName("label_7");
-
-        gridLayout_6->addWidget(label_7, 9, 0, 1, 1);
-
-        verticalSpacer_3 = new QSpacerItem(20, 80, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
-
-        gridLayout_6->addItem(verticalSpacer_3, 11, 0, 1, 1);
+        gridLayout->addWidget(pbLineNET, 6, 0, 1, 1);
 
         maxBandwithNET_2 = new QComboBox(tabNetwork);
         maxBandwithNET_2->setObjectName("maxBandwithNET_2");
 
-        gridLayout_6->addWidget(maxBandwithNET_2, 10, 0, 1, 2);
+        gridLayout->addWidget(maxBandwithNET_2, 10, 0, 1, 1);
+
+        label_28 = new QLabel(tabNetwork);
+        label_28->setObjectName("label_28");
+
+        gridLayout->addWidget(label_28, 4, 1, 1, 1);
+
+        label_6 = new QLabel(tabNetwork);
+        label_6->setObjectName("label_6");
+
+        gridLayout->addWidget(label_6, 8, 1, 1, 1);
 
         tabWidget->addTab(tabNetwork, QString());
 
-        gridLayout->addWidget(tabWidget, 0, 0, 1, 2);
+        gridLayout_6->addWidget(tabWidget, 1, 1, 1, 1);
 
 
         retranslateUi(PerformanceMonitorClass);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(3);
 
 
         QMetaObject::connectSlotsByName(PerformanceMonitorClass);
@@ -505,25 +529,25 @@ public:
         label_3->setText(QCoreApplication::translate("PerformanceMonitorClass", "Visibility", nullptr));
         label_4->setText(QCoreApplication::translate("PerformanceMonitorClass", "Style", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(TabGeneral), QCoreApplication::translate("PerformanceMonitorClass", "General", nullptr));
-        showCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
-        doubleLineCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Double Line", nullptr));
-        pbBackCPU->setText(QString());
-        label_8->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
         chCPUManual->setText(QCoreApplication::translate("PerformanceMonitorClass", "Manual Foreground", nullptr));
         pbLineCPU->setText(QString());
-        label_9->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
+        pbBackCPU->setText(QString());
         showForEachCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show One Graph for every CPU/Core", nullptr));
+        label_8->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
+        showCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
+        label_9->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
+        label_14->setText(QCoreApplication::translate("PerformanceMonitorClass", "Line width", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(TabCpu), QCoreApplication::translate("PerformanceMonitorClass", "Cpu", nullptr));
         showRAM->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
-        doubleLineRAM->setText(QCoreApplication::translate("PerformanceMonitorClass", "Double Line", nullptr));
-        pbBackRAM->setText(QString());
         label_10->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
         chRAMManual->setText(QCoreApplication::translate("PerformanceMonitorClass", "Manual Foreground", nullptr));
-        pbLineRAM->setText(QString());
         label_11->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
+        label_15->setText(QCoreApplication::translate("PerformanceMonitorClass", "Line width", nullptr));
+        pbBackRAM->setText(QString());
+        pbLineRAM->setText(QString());
         tabWidget->setTabText(tabWidget->indexOf(tabMemory), QCoreApplication::translate("PerformanceMonitorClass", "Memory", nullptr));
         showDisk->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
-        doubleLineDisk->setText(QCoreApplication::translate("PerformanceMonitorClass", "Double Line", nullptr));
+        label_16->setText(QCoreApplication::translate("PerformanceMonitorClass", "Line width", nullptr));
         pbBackDisk->setText(QString());
         label_12->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
         chDiskManual->setText(QCoreApplication::translate("PerformanceMonitorClass", "Manual Foreground", nullptr));
@@ -532,15 +556,15 @@ public:
         separateGrpahsDisk->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show separate graphs for read/write", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tabDisk), QCoreApplication::translate("PerformanceMonitorClass", "Disk", nullptr));
         showNET->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
-        doubleLineNET->setText(QCoreApplication::translate("PerformanceMonitorClass", "Double Line", nullptr));
+        separateGrpahsNET->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show separate graphs for up/dw", nullptr));
         pbBackNET->setText(QString());
-        label_28->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
+        label_7->setText(QCoreApplication::translate("PerformanceMonitorClass", "Net Interface", nullptr));
+        label_17->setText(QCoreApplication::translate("PerformanceMonitorClass", "Line width", nullptr));
+        label_27->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
         chNETManual->setText(QCoreApplication::translate("PerformanceMonitorClass", "Manual Foreground", nullptr));
         pbLineNET->setText(QString());
-        label_27->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
-        separateGrpahsNET->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show separate graphs for up/dw", nullptr));
+        label_28->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
         label_6->setText(QCoreApplication::translate("PerformanceMonitorClass", "Max Bandwidth", nullptr));
-        label_7->setText(QCoreApplication::translate("PerformanceMonitorClass", "Net Interface", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tabNetwork), QCoreApplication::translate("PerformanceMonitorClass", "Network", nullptr));
     } // retranslateUi
 

@@ -69,6 +69,7 @@ public:
 	bool m_bAllwaysShowLabel{ false };
 };
 
+constexpr int c_defaultLineSize = 0;
 class ChartOptions
 {
 public:
@@ -85,7 +86,7 @@ public:
 		m_backgroundColor = settings.value("BackgroundColor").value<QColor>();
 		m_lineColor = settings.value("LineColor").value<QColor>();
 		m_bManualForeground = settings.value("ManualForeground", true).toBool();
-		m_bDoubleLine = settings.value("DoubleLine", false).toBool();
+		m_lineSize = settings.value("LineWidth", c_defaultLineSize).toInt();
 		m_bShowGraph = settings.value("ShowGraph", true).toBool();
 		const bool bRet = LoadOther(settings);
 		settings.endGroup();
@@ -100,7 +101,7 @@ public:
 		settings.setValue("BackgroundColor", m_backgroundColor);
 		settings.setValue("LineColor", m_lineColor);
 		settings.setValue("ManualForeground", m_bManualForeground);
-		settings.setValue("DoubleLine", m_bDoubleLine);
+		settings.setValue("LineWidth", m_lineSize);
 		settings.setValue("ShowGraph", m_bShowGraph);
 		SaveOther(settings);
 		settings.endGroup();
@@ -111,7 +112,7 @@ public:
 	{
 		m_ChartType = eDefaultCharStyle;
 		m_bManualForeground = false;
-		m_bDoubleLine = false;
+		m_lineSize = c_defaultLineSize;
 		m_bShowGraph = true;
 	}
 	static QColor GenerateLineColor(const QColor& srcColor)
@@ -138,7 +139,7 @@ public:
 	QColor m_lineColor;
 	ChartStyle m_ChartType{ eDefaultCharStyle };
 	bool m_bManualForeground{ false };
-	bool m_bDoubleLine{ false };
+	int m_lineSize{ c_defaultLineSize };
 	bool m_bShowGraph{ true };
 };
 
