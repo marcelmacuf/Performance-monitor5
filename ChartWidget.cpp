@@ -69,8 +69,17 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 		pLineSeries->setPen(linePen);
 		pChart->addSeries(pLineSeries);
 	}
-
 	pChart->legend()->hide();
+	if (pChartData->m_chartGlobalOptions.m_bAllwaysShowLabel)
+	{
+		QFont font;
+		font.setPixelSize(10);
+		QGraphicsTextItem* pTitle = new QGraphicsTextItem(pChartData->m_optionName);
+		pTitle->setPos(-3, -5);
+		pTitle->setFont(font);
+		pTitle->setDefaultTextColor(pChartData->m_lineColor);
+		pChart->scene()->addItem(pTitle);
+	}
 	constexpr int marginToHideAxis = -2;
 	pChart->setMargins(QMargins(marginToHideAxis,0,0, marginToHideAxis));
 	pChart->layout()->setContentsMargins(0, 0, 0, 0);
@@ -84,9 +93,8 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 
 	QValueAxis* pXAxis = (QValueAxis*)axes[0];
 	pXAxis->setRange(0, c_XAxisRange);
-
 	const QBrush gridBrush(pChartData->GenerateGridColor(pChartData->m_backgroundColor));
-	QPen gridPen(gridBrush, pChartData->m_lineSize, Qt::PenStyle::DotLine);
+	const QPen gridPen(gridBrush, pChartData->m_lineSize, Qt::PenStyle::DotLine);
 	for (size_t i = 0, axesSize = axes.size(); i < axesSize; i++)
 	{
 		QAbstractAxis* pAxis = axes[i];
@@ -172,9 +180,8 @@ void ChartWidget::AddData(const double values[2])
 	
 	for (size_t i = 0, seriesSize = series.size(); i < seriesSize && i < std::size(data);i++)
 	{
-		QLineSeries* pLineSeries = static_cast<QLineSeries*>(series[i]);
-		pLineSeries->clear();
-		pLineSeries->append(*data[i]);
+		QXYSeries* pLineSeries = static_cast<QXYSeries*>(series[i]);
+		pLineSeries->replace(*data[i]);
 	}
 
 	repaint();

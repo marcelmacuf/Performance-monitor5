@@ -7,6 +7,7 @@ class PerformanceMonitor;
 
 constexpr int c_DefaultUpdateInterval = 1;
 constexpr int c_DefaultTransparency = 90;	// %
+constexpr int c_DefaultPriority = 32;
 class ChartGlobalOptions
 {
 public:
@@ -22,7 +23,7 @@ public:
 			m_transparency = c_DefaultTransparency;
 			return false;
 		}
-		m_processPriority = settings.value("ProcessPriority", eDefaultPriority).value<ProcessPriority>();
+		m_processPriority = settings.value("ProcessPriority", c_DefaultPriority).toInt();
 		m_chartWindowStyle = settings.value("CharWindowStyle", eDefaultStyle).value<ChartWindowStyle>();
 		m_updateInterval = settings.value("UpdateInterval", c_DefaultUpdateInterval).toInt();
 		m_bAutostartWithWindows = settings.value("Autostart", true).toBool();
@@ -48,7 +49,7 @@ public:
 	void Reset()
 	{
 		m_transparency = c_DefaultTransparency;
-		m_processPriority = eDefaultPriority;
+		m_processPriority = c_DefaultPriority;
 		m_chartWindowStyle = eDefaultStyle;
 		m_updateInterval = c_DefaultUpdateInterval;
 		m_bAutostartWithWindows = true;
@@ -58,9 +59,8 @@ public:
 	}
 	const QString m_optionName;
 	enum ChartWindowStyle : int { eFlat, eStyle2, eStyle3, eDefaultStyle = eFlat };
-	enum ProcessPriority : int { eBelowNormal, eNormal, eAboveNormal, eDefaultPriority = eNormal };
 	int m_transparency{ c_DefaultTransparency };	// in %
-	ProcessPriority m_processPriority{ eDefaultPriority };
+	int m_processPriority{ c_DefaultPriority };
 	ChartWindowStyle m_chartWindowStyle{ eDefaultStyle };
 	int m_updateInterval{ c_DefaultUpdateInterval };				// Seconds.
 	bool m_bAutostartWithWindows{ true };

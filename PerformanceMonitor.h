@@ -29,6 +29,7 @@ private slots:
 	void About();
 	void Help();
 private:
+	void ApplyGlobalOptions();
 	void CreateTrayActions();
 	void InitUiElements();
 	void ValidateData();

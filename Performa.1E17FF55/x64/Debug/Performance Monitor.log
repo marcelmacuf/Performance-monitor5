@@ -1,4 +1,14 @@
-﻿   Qt/MSBuild: 3.4.0.1
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (Performa.1E17FF55\x64\Debug\) contains files shared from another project (Performance Monitor.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+   Qt/MSBuild: 3.4.0.1
+  Reading Qt configuration (D:/Programing/Qt/6.9.1/msvc2022_64/bin/qmake)
    Qt: 6.9.1
+  stdafx.cpp
+  ChartWidget.cpp
+  ColorButton.cpp
+  PerformanceMonitor.cpp
   main.cpp
-  Performance Monitor.vcxproj -> D:\Programing\Projects\Performance-monitor5\x64\Debug\Performance Monitor.exe
+  qrc_PerformanceMonitor.cpp
+  moc_PerformanceMonitor.cpp
+  moc_ChartWidget.cpp
+  moc_ColorButton.cpp
+  Performance Monitor.vcxproj -> D:\Programing\Projects\Performance-monitor5\x64\Debug\PerformanceMonitor5.exe

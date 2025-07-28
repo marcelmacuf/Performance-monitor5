@@ -11,10 +11,10 @@
 constexpr int c_unitWidth = 33;
 constexpr int c_unitHeight = 21;
 constexpr int c_defaultSizeIndex = 2;
-constexpr char c_CPU[]{ "CPU" };
-constexpr char c_RAM[]{ "RAM" };
-constexpr char c_DISK[]{ "DISC" };
-constexpr char c_NET[]{ "NET" };
+constexpr char c_CPU[]{ "Cpu" };
+constexpr char c_RAM[]{ "Ram" };
+constexpr char c_DISK[]{ "Disk" };
+constexpr char c_NET[]{ "Net" };
 const QColor c_CPUColor(0, 123, 183);
 const QColor c_RAMColor(0, 128, 0);
 const QColor c_DISKColor(176, 119, 0);
@@ -78,13 +78,12 @@ namespace
 		{ "Slow - 5 sec", 5 },
 		{ "Very Slow - 10 sec", 10 },
 	};
-	const std::pair<QString, ChartGlobalOptions::ProcessPriority> c_Priorities[]
+	const std::pair<QString, int> c_Priorities[]
 	{
-		{ "Below Normal", ChartGlobalOptions::ProcessPriority::eBelowNormal  },
-		{ "Normal", ChartGlobalOptions::ProcessPriority::eNormal },
-		{ "Above Normal", ChartGlobalOptions::ProcessPriority::eAboveNormal }
+		{ "Below Normal", BELOW_NORMAL_PRIORITY_CLASS  },
+		{ "Normal", NORMAL_PRIORITY_CLASS },
+		{ "Above Normal", ABOVE_NORMAL_PRIORITY_CLASS }
 	};
-
 	const  std::pair<QString, ChartGlobalOptions::ChartWindowStyle> c_WindowStyles[]
 	{
 		{ "Flat",		ChartGlobalOptions::ChartWindowStyle::eFlat },
@@ -139,13 +138,19 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	CreatePerfCounters();
 
 	QObject::connect(&m_timer, &QTimer::timeout, this, &PerformanceMonitor::HandleTimeout);
-	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
+	ApplyGlobalOptions();
 	m_timer.start();
 }
 
 PerformanceMonitor::~PerformanceMonitor()
 {
 	ReleasePerfCounters();
+}
+
+void PerformanceMonitor::ApplyGlobalOptions()
+{
+	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
+	SetPriorityClass(GetCurrentProcess(), m_globalOptions.m_processPriority);
 }
 
 void PerformanceMonitor::CreateTrayActions()
@@ -206,9 +211,9 @@ void PerformanceMonitor::InitUiElements()
 	{
 		ui.cbUpdateInterval->addItem(updateIntervnal.first);
 	}
-	for (const auto&[priority, dummy] : c_Priorities)
+	for (const auto&[priority, value] : c_Priorities)
 	{
-		ui.cbPriority->addItem(priority);
+		ui.cbPriority->addItem(priority, value);
 	}
 	for (const auto&[style, dummy] : c_WindowStyles)
 	{
@@ -259,7 +264,8 @@ void PerformanceMonitor::ValidateData()
 	auto foundPriority = std::ranges::find_if(c_Priorities, [this](const auto& item) { return m_globalOptions.m_processPriority == item.second;});
 	if (foundPriority == std::end(c_Priorities))
 	{
-		m_globalOptions.m_processPriority = ChartGlobalOptions::ProcessPriority::eDefaultPriority;
+		static_assert(c_DefaultPriority == NORMAL_PRIORITY_CLASS);
+		m_globalOptions.m_processPriority = c_DefaultPriority;
 	}
 	auto foundStyle = std::ranges::find_if(c_WindowStyles, [this](const auto& item) { return m_globalOptions.m_chartWindowStyle == item.second;});
 	if (foundStyle == std::end(c_WindowStyles))
@@ -364,14 +370,31 @@ void PerformanceMonitor::LoadDataToChart(const ChartOptions& options, QCheckBox*
 void PerformanceMonitor::SaveDataFromUi()
 {
 	m_globalOptions.m_bAutostartWithWindows = ui.chAutoStart->isChecked();
+	{
+		QString applicaitonPath = QApplication::applicationFilePath();
+		applicaitonPath.replace('/', '\\');
+		const QFileInfo fileInfo(applicaitonPath);
+		const QString filename(fileInfo.baseName());
+		QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+		if (m_globalOptions.m_bAutostartWithWindows)
+		{
+			settings.setValue(filename, applicaitonPath);
+		}
+		else
+		{
+			settings.remove(filename);
+		}
+	}
+
 	m_globalOptions.m_bPassThroughtMode = ui.chPass->isChecked();
 	m_pPassThroughAction->setChecked(m_globalOptions.m_bPassThroughtMode);
 	m_globalOptions.m_bAllwaysOnTheTop = ui.chAllwaysTop->isChecked();
 	m_globalOptions.m_bAllwaysShowLabel = ui.chShowLabel->isChecked();
 	m_globalOptions.m_updateInterval = c_UpdateIntervals[ui.cbUpdateInterval->currentIndex()].second;
-	m_globalOptions.m_processPriority = c_Priorities[ui.cbPriority->currentIndex()].second;
+	m_globalOptions.m_processPriority = ui.cbPriority->currentData().toInt();
 	m_globalOptions.m_transparency = ui.cbVisibility->currentData().toInt();
 	m_globalOptions.m_chartWindowStyle = c_WindowStyles[ui.cbStyle->currentIndex()].second;
+	ApplyGlobalOptions();
 
 	SaveDataFromChart(m_cpuOptions, ui.showCPU, ui.graphCPU, ui.lineSizeCPU, ui.sizeCPU, ui.pbBackCPU, ui.chCPUManual, ui.pbLineCPU);
 	SaveDataFromChart(m_ramOptions, ui.showRAM, ui.graphRAM, ui.lineSizeRAM, ui.sizeRAM, ui.pbBackRAM, ui.chRAMManual, ui.pbLineRAM);
@@ -394,7 +417,6 @@ void PerformanceMonitor::SaveDataFromUi()
 		pOptions->Save(*m_pAppSettings);
 	}
 	m_pAppSettings->sync();
-	m_timer.setInterval(m_globalOptions.m_updateInterval * 1000);
 }
 
 void PerformanceMonitor::SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QComboBox* pLineSize, QComboBox* pSize,
@@ -475,15 +497,13 @@ void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartC
 	{
 		options->m_lineColor = options->GenerateLineColor(options->m_backgroundColor);
 	}
-	
+	const QSize size(GetDefaultSize());
+	cpuOptions.m_size = size;
+	ramOptions.m_size = size;
+	diskOptions.m_size = size;
+	netOptions.m_size = size;
 	if (bPositions)
 	{
-		const QSize size(GetDefaultSize());
-		cpuOptions.m_size = size;
-		ramOptions.m_size = size;
-		diskOptions.m_size = size;
-		netOptions.m_size = size;
-
 		const QScreen* screen = QGuiApplication::primaryScreen();
 		const QRect screenGeometry = screen->geometry();
 		const int screenheight = screenGeometry.height();
@@ -497,8 +517,10 @@ void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartC
 			startPosition += addPoint;
 		}
 	}
-	if(&globalOptions == &m_globalOptions)
-		m_timer.setInterval(globalOptions.m_updateInterval * 1000);
+	if (&globalOptions == &m_globalOptions)
+	{
+		ApplyGlobalOptions();
+	}
 }
 
 QSize PerformanceMonitor::GetMinimumSize() const
