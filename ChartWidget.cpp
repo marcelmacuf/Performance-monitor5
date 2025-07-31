@@ -193,22 +193,112 @@ void ChartWidget::SetPassThroughMode(const bool bPassThrough)
 	show();
 }
 
+ChartWidget::Boundary ChartWidget::GetInflatedBoundary() const
+{
+	constexpr int snappPixels = 4;
+	constexpr int snappDouble = snappPixels * 2;
+	const QRect thisR = rect();
+	const QPoint originalPos = pos();
+	const QPoint myPos(originalPos);
+	const QRect originRec(myPos, thisR.size());
+	Boundary inflatedBoundary;
+	inflatedBoundary.originRec = originRec;
+	inflatedBoundary.originLeftRect = QRect(originRec.left() - snappPixels, originRec.top() - snappPixels, snappDouble, originRec.height() + snappDouble);
+	inflatedBoundary.originTopRect = QRect(originRec.left() - snappPixels, originRec.top() - snappPixels, originRec.width() + snappDouble, snappDouble);
+	inflatedBoundary.originRightRec = QRect(originRec.left() + originRec.width() - snappPixels, originRec.top() - snappPixels, snappDouble, originRec.height() + snappDouble);
+	inflatedBoundary.originBottomRec = QRect(originRec.left() - snappPixels, originRec.top() + originRec.height() - snappPixels, originRec.width() + snappDouble, snappDouble);
+	return inflatedBoundary;
+}
+
+QPoint ChartWidget::Intersection(const Boundary& inflatedBoundary) const
+{
+	QPoint intPos(INT_MAX, INT_MAX);
+	if (!isVisible())
+		return intPos;
+	constexpr int widgetRectSize = 1;
+	const QRect widgetR = rect();
+	const QPoint widgetPos = pos();
+	const QRect widgetRect(widgetPos, widgetR.size());
+	const QRect widgetLeft(widgetRect.left(), widgetRect.top(), widgetRectSize, widgetRect.height());
+	const QRect widgetRight(widgetRect.left() - widgetRectSize + widgetRect.width(), widgetRect.top(), widgetRectSize, widgetRect.height());
+	const QRect widgetTop(widgetRect.left(), widgetRect.top(), widgetRect.width(), widgetRectSize);
+	const QRect widgetBottom(widgetRect.left(), widgetRect.top() - widgetRectSize + widgetRect.height(), widgetRect.width(), widgetRectSize);
+	if (inflatedBoundary.originLeftRect.intersects(widgetLeft))
+	{
+		intPos.setX(widgetRect.left());
+	}
+	else if (inflatedBoundary.originLeftRect.intersects(widgetRight))
+	{
+		intPos.setX(widgetRect.left() + widgetRect.width());
+	}
+	else if (inflatedBoundary.originRightRec.intersects(widgetLeft))
+	{
+		intPos.setX(widgetRect.left() - inflatedBoundary.originRec.width());
+	}
+	else if (inflatedBoundary.originRightRec.intersects(widgetRight))
+	{
+		intPos.setX(widgetRect.left() + widgetRect.width() - inflatedBoundary.originRec.width());
+	}
+
+
+	if (inflatedBoundary.originTopRect.intersects(widgetTop))
+	{
+		intPos.setY(widgetRect.top());
+	}
+	else if (inflatedBoundary.originTopRect.intersects(widgetBottom))
+	{
+		intPos.setY(widgetRect.top() + widgetRect.height());
+	}
+	else if (inflatedBoundary.originBottomRec.intersects(widgetTop))
+	{
+		intPos.setY(widgetRect.top() - inflatedBoundary.originRec.height());
+	}
+	else if (inflatedBoundary.originBottomRec.intersects(widgetBottom))
+	{
+		intPos.setY(widgetRect.top() + widgetRect.height() - inflatedBoundary.originRec.height());
+	}
+	return intPos;
+}
+
+void ChartWidget::CollectJoinedWidgets(ChartWidget* pMovingWidget, QVector<ChartWidget*>& movingWidgets) const
+{
+	const size_t startSize = movingWidgets.size();
+	const Boundary inflatedBoundary = pMovingWidget->GetInflatedBoundary();
+	const QVector<ChartWidget*>& graphs = m_pPerfMonitor->GetGraphs();
+	for (ChartWidget* pWidget : graphs)
+	{
+		if (pWidget == pMovingWidget)
+			continue;
+		if(std::ranges::find(movingWidgets, pWidget) != movingWidgets.end())
+			continue;
+
+		const QPoint intersectionPoint = pWidget->Intersection(inflatedBoundary);
+		if (intersectionPoint.x() != INT_MAX || intersectionPoint.y() != INT_MAX)
+		{
+			movingWidgets.append(pWidget);
+			CollectJoinedWidgets(pWidget, movingWidgets);
+		}
+	}
+}
+
 bool ChartWidget::event(QEvent* pEvent)
 {
 	if (pEvent->type() == QEvent::MouseButtonPress)
 	{
+		m_movingWidgets.clear();
 		const QMouseEvent* pMouseEvent = static_cast<QMouseEvent*>(pEvent);
 		if (pMouseEvent->button() == Qt::LeftButton)
 		{
 			windowHandle()->startSystemMove();
 			if (pMouseEvent->modifiers() & Qt::KeyboardModifier::ControlModifier)
 			{
-
+				CollectJoinedWidgets(this, m_movingWidgets);
 			}
 		}
 	}
 	else if (pEvent->type() == QEvent::MouseButtonRelease)
 	{
+		m_movingWidgets.clear();
 		const QMouseEvent* pMouseEvent = static_cast<QMouseEvent*>(pEvent);
 		if (pMouseEvent->button() == Qt::LeftButton)
 		{
@@ -224,69 +314,31 @@ bool ChartWidget::event(QEvent* pEvent)
 		const QMoveEvent* pMoveEvent = static_cast<QMoveEvent*>(pEvent);
 		if (pMoveEvent->spontaneous())
 		{
-			constexpr int snappPixels = 5;
-			constexpr int snappDouble = snappPixels * 2;
-			constexpr int widgetRectSize = 1;
-			const QRect thisR = rect();
-			const QPoint originalPos = pos();
-			QPoint myPos(originalPos);
-			const QRect originRec(myPos, thisR.size());
-			const QRect originLeftRect(originRec.left() - snappPixels, originRec.top() - snappPixels, snappDouble, originRec.height() + snappDouble);
-			const QRect originTopRect(originRec.left() - snappPixels, originRec.top() - snappPixels, originRec.width() + snappDouble, snappDouble);
-			const QRect originRightRec(originRec.left() + originRec.width() - snappPixels, originRec.top() - snappPixels, snappDouble, originRec.height() + snappDouble);
-			const QRect originBottomRec(originRec.left() - snappPixels, originRec.top() + originRec.height() - snappPixels, originRec.width() + snappDouble, snappDouble);
-
-
+			const Boundary inflatedBoundary = GetInflatedBoundary();
+			QPoint myPos(pos());
 			const QVector<ChartWidget*>& graphs = m_pPerfMonitor->GetGraphs();
 			for (ChartWidget* pWidget : graphs)
 			{
-				if (pWidget == this)
+				if (pWidget == this || m_movingWidgets.contains(pWidget))
 					continue;
-				const QRect widgetR = pWidget->rect();
-				const QPoint widgetPos = pWidget->pos();
-				const QRect widgetRect(widgetPos, widgetR.size());
-				const QRect widgetLeft(widgetRect.left(),										 widgetRect.top(), widgetRectSize, widgetRect.height());
-				const QRect widgetRight(widgetRect.left() - widgetRectSize + widgetRect.width(), widgetRect.top(), widgetRectSize, widgetRect.height());
-				const QRect widgetTop(widgetRect.left(),										   widgetRect.top(), widgetRect.width(), widgetRectSize);
-				const QRect widgetBottom(widgetRect.left(), widgetRect.top() - widgetRectSize + widgetRect.height(), widgetRect.width(), widgetRectSize);
-				if (originLeftRect.intersects(widgetLeft))
+				const QPoint intersectionPoint = pWidget->Intersection(inflatedBoundary);
+				if (intersectionPoint.x() != INT_MAX)
+					myPos.setX(intersectionPoint.x());
+				if (intersectionPoint.y() != INT_MAX)
+					myPos.setY(intersectionPoint.y());
+			}
+			if (!m_movingWidgets.empty())
+			{
+				const QPoint& oldPos = pMoveEvent->oldPos();
+				const QPoint diff = myPos - oldPos;
+				for (ChartWidget* pWidget : m_movingWidgets)
 				{
-					myPos.setX(widgetRect.left());
-				}
-				else if (originLeftRect.intersects(widgetRight))
-				{
-					myPos.setX(widgetRect.left() + widgetRect.width());
-				}
-				else if (originRightRec.intersects(widgetLeft))
-				{
-					myPos.setX(widgetRect.left() - originRec.width());
-				}
-				else if (originRightRec.intersects(widgetRight))
-				{
-					myPos.setX(widgetRect.left() + widgetRect.width() - originRec.width());
-				}
-
-
-				if (originTopRect.intersects(widgetTop))
-				{
-					myPos.setY(widgetRect.top());
-				}
-				else if (originTopRect.intersects(widgetBottom))
-				{
-					myPos.setY(widgetRect.top() + widgetRect.height());
-				}
-				else if (originBottomRec.intersects(widgetTop))
-				{
-					myPos.setY(widgetRect.top() - originRec.height());
-				}
-				else if (originBottomRec.intersects(widgetBottom))
-				{
-					myPos.setY(widgetRect.top() + widgetRect.height() - originRec.height());
+					QPoint widgetPos = pWidget->pos();
+					widgetPos += diff;
+					pWidget->move(widgetPos);
 				}
 			}
 			move(myPos);
-			const QPoint& oldPos = pMoveEvent->oldPos();
-			const QPoint& newPos = pMoveEvent->pos();
 		}
 	}
 

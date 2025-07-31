@@ -118,7 +118,8 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	}
 	else
 	{
-		ResetSettings(m_globalOptions, m_cpuOptions, m_ramOptions, m_diskOptions, m_netOptions, true);
+		ResetSettings(m_globalOptions, m_cpuOptions, m_ramOptions, m_diskOptions, m_netOptions);
+		RestorePositions();
 	}
 	CreateTrayActions();
 	m_pTrayIcon->show();
@@ -173,6 +174,10 @@ void PerformanceMonitor::CreateTrayActions()
 	pRestoreAction->setIcon(pStyle->standardIcon(QStyle::SP_BrowserReload));
 	connect(pRestoreAction, &QAction::triggered, this, &PerformanceMonitor::RestorePositions);
 
+	QAction* pResetAction = new QAction(tr("&Reset Positions"), this);
+	pResetAction->setIcon(pStyle->standardIcon(QStyle::SP_MediaSkipBackward));
+	connect(pResetAction, &QAction::triggered, this, &PerformanceMonitor::ResetPositionsAndSave);
+
 	QAction* pHelpAction = new QAction(tr("&Help"), this);
 	pHelpAction->setIcon(pStyle->standardIcon(QStyle::SP_TitleBarShadeButton));
 	connect(pHelpAction, &QAction::triggered, this, &PerformanceMonitor::Help);
@@ -192,6 +197,7 @@ void PerformanceMonitor::CreateTrayActions()
 	pTrayIconMenu->addSeparator();
 	pTrayIconMenu->addAction(pBackUpAction);
 	pTrayIconMenu->addAction(pRestoreAction);
+	pTrayIconMenu->addAction(pResetAction);
 	pTrayIconMenu->addSeparator();
 	pTrayIconMenu->addAction(pHelpAction);
 	pTrayIconMenu->addAction(pAboutAction);
@@ -444,8 +450,35 @@ void PerformanceMonitor::ResetUi()
 	diskOptions.m_position = m_diskOptions.m_position;
 	netOptions.m_position = m_netOptions.m_position;
 
-	ResetSettings(globalOptions, cpuOptions, ramOptions, diskOptions, netOptions, false);
+	ResetSettings(globalOptions, cpuOptions, ramOptions, diskOptions, netOptions);
 	LoadDataToUi(globalOptions, cpuOptions, ramOptions, diskOptions, netOptions);
+}
+
+void PerformanceMonitor::ResetPositions()
+{
+	const QScreen* screen = QGuiApplication::primaryScreen();
+	const QRect screenGeometry = screen->geometry();
+	const int screenheight = screenGeometry.height();
+	const int screenWidth = screenGeometry.width();
+	constexpr int xOffset = 24;
+	constexpr int yOffset = 97;
+	constexpr int bottomOffset = 95;
+	QPoint startPosition(screenWidth - xOffset, yOffset);	// Right top corner.
+	int minX = INT_MAX;
+	ChartOptions* const optionsList[4]{ &m_netOptions, &m_diskOptions, &m_ramOptions, &m_cpuOptions };
+	for (ChartOptions* options : optionsList)
+	{
+		if (startPosition.y() + options->m_size.height() > (screenheight - bottomOffset))
+		{
+			// We get into end, move to the next line.
+			startPosition.setX(minX);
+			startPosition.setY(yOffset);
+		}
+		const QPoint myPosition = startPosition - QPoint(options->m_size.width(), 0);
+		options->m_position = myPosition;
+		minX = min(minX, myPosition.x());
+		startPosition += QPoint(0, options->m_size.height());
+	}
 }
 
 void PerformanceMonitor::ButtonBoxClicked(QAbstractButton* pButton)
@@ -480,7 +513,7 @@ void PerformanceMonitor::Help()
 }
 
 void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
-									   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions)
+									   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions)
 {
 	globalOptions.Reset();
 	cpuOptions.Reset();
@@ -502,21 +535,7 @@ void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartC
 	ramOptions.m_size = size;
 	diskOptions.m_size = size;
 	netOptions.m_size = size;
-	if (bPositions)
-	{
-		const QScreen* screen = QGuiApplication::primaryScreen();
-		const QRect screenGeometry = screen->geometry();
-		const int screenheight = screenGeometry.height();
-		const int screenWidth = screenGeometry.width();
-		QPoint addPoint(0, size.height());
-		QPoint startPosition(screenWidth - (size.width()*2/*1.2*/), 80);
-		
-		for (ChartOptions* options : optionsList)
-		{
-			options->m_position = startPosition;
-			startPosition += addPoint;
-		}
-	}
+
 	if (&globalOptions == &m_globalOptions)
 	{
 		ApplyGlobalOptions();
@@ -526,21 +545,6 @@ void PerformanceMonitor::ResetSettings(ChartGlobalOptions& globalOptions, ChartC
 QSize PerformanceMonitor::GetMinimumSize() const
 {
 	return{c_unitWidth, c_unitHeight};
-}
-
-void PerformanceMonitor::BackUpPositions()
-{
-	m_globalOptions.Save(*m_pAppSettings);
-	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
-	for (ChartOptions* pOptions : optionsList)
-	{
-		if (ChartWidget* pWidget = FindChart(pOptions->m_optionName))
-		{
-			pOptions->m_position = pWidget->pos();
-		}
-		pOptions->Save(*m_pAppSettings);
-	}
-	m_pAppSettings->sync();
 }
 
 void PerformanceMonitor::ShowMenu(const QPoint& pos)
@@ -567,6 +571,21 @@ void PerformanceMonitor::reject()
 	hide();
 }
 
+void PerformanceMonitor::BackUpPositions()
+{
+	m_globalOptions.Save(*m_pAppSettings);
+	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
+	for (ChartOptions* pOptions : optionsList)
+	{
+		if (ChartWidget* pWidget = FindChart(pOptions->m_optionName))
+		{
+			pOptions->m_position = pWidget->pos();
+		}
+		pOptions->Save(*m_pAppSettings);
+	}
+	m_pAppSettings->sync();
+}
+
 void PerformanceMonitor::RestorePositions()
 {
 	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
@@ -577,6 +596,13 @@ void PerformanceMonitor::RestorePositions()
 			pWidget->move(pOptions->m_position);
 		}
 	}
+}
+
+void PerformanceMonitor::ResetPositionsAndSave()
+{
+	ResetPositions();
+	RestorePositions();
+	BackUpPositions();
 }
 
 void PerformanceMonitor::PassThroughMode()

@@ -233,12 +233,24 @@ public:
 	const QVector<void*>& GetCounters() const { return m_counters; }
 	bool event(QEvent* event) override;
 	void SetFirstLineScale(const double firstGraphScale) { m_firstGraphScale = firstGraphScale; }
+	struct Boundary
+	{
+		QRect originRec;
+		QRect originLeftRect;
+		QRect originTopRect;
+		QRect originRightRec;
+		QRect originBottomRec;
+	};
+	Boundary GetInflatedBoundary() const;
+	QPoint Intersection(const Boundary& inflatedBoundary) const;
 private:
+	void CollectJoinedWidgets(ChartWidget* pMovingWidget, QVector<ChartWidget*>& movingWidgets) const;
 	QVector<void*> m_counters;
 	QVector<QPointF> m_firstData;
 	QVector<QPointF> m_secondData;
 	QVector<QPointF> m_thirdData;
 	QVector<QPointF> m_fourthData;
+	QVector<ChartWidget*>m_movingWidgets;
 	PerformanceMonitor* const m_pPerfMonitor{ nullptr };
 	double m_firstGraphScale{ 1.0 };
 };

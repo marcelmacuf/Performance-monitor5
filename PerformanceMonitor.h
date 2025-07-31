@@ -23,6 +23,7 @@ protected:
 private slots:
 	void HandleTimeout();
 	void RestorePositions();
+	void ResetPositionsAndSave();
 	void PassThroughMode();
 	void SaveDataFromUi();
 	void ButtonBoxClicked(QAbstractButton* pButton);
@@ -40,8 +41,9 @@ private:
 	void SaveDataFromChart(ChartOptions& options, QCheckBox* pVisible, QComboBox* pGraph, QComboBox* pLineSize, QComboBox* pSize,
 						   ColorButton* pBack, QCheckBox* pManualForeground, ColorButton* pForeground);
 	void ResetSettings(ChartGlobalOptions& globalOptions, ChartCpuOptions& cpuOptions, ChartOptions& ramOptions,
-					   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions, const bool bPositions);
+					   ChartDoubleOptions& diskOptions, ChartNetOptions& netOptions);
 	void ResetUi();
+	void ResetPositions();
 	void CreatePerfCounters();
 	void ReleasePerfCounters();
 	void ShowError(const QString& errorMessage);
