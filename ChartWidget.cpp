@@ -65,7 +65,7 @@ void ChartWidget::LoadSettings(const ChartOptions* pChartData)
 		{
 			color = pChartData->GenerateLineColor(pChartData->GenerateSecondLineColor(pChartData->m_lineColor));
 		}
-		const QPen linePen(QBrush(color), pChartData->m_lineSize);
+		const QPen linePen(QBrush(color), pChartData->m_lineSize, Qt::PenStyle::SolidLine, Qt::PenCapStyle::FlatCap, Qt::PenJoinStyle::SvgMiterJoin);
 		pLineSeries->setPen(linePen);
 		pChart->addSeries(pLineSeries);
 	}

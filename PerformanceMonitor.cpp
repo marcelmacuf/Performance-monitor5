@@ -771,7 +771,7 @@ void PerformanceMonitor::HandleTimeout()
 				for (size_t i = 0, size = counters.size();i < size; i++)
 				{
 					PDH_FMT_COUNTERVALUE value;
-					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE, &ret, &value);
+					status = PdhGetFormattedCounterValue(counters[i], PDH_FMT_DOUBLE | PDH_FMT_NOCAP100, &ret, &value);
 					if (m_netOptions.m_bIgnoreSmallTrafic)
 					{
 						if (value.doubleValue < 1024)	// Ignore trafic smaller than 1KB.
