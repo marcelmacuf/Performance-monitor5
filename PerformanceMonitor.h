@@ -25,6 +25,7 @@ private slots:
 	void RestorePositions();
 	void ResetPositionsAndSave();
 	void PassThroughMode();
+	void ScreenChanged();
 	void SaveDataFromUi();
 	void ButtonBoxClicked(QAbstractButton* pButton);
 	void About();
@@ -66,5 +67,6 @@ private:
 	
 	QTimer m_timer;
 	void* m_hQuery = nullptr;
+	QSize m_previousScreenSize;
 };
 

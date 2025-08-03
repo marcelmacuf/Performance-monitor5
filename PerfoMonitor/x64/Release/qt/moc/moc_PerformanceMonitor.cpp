@@ -49,6 +49,7 @@ template <> constexpr inline auto PerformanceMonitor::qt_create_metaobjectdata<q
         "RestorePositions",
         "ResetPositionsAndSave",
         "PassThroughMode",
+        "ScreenChanged",
         "SaveDataFromUi",
         "ButtonBoxClicked",
         "QAbstractButton*",
@@ -72,16 +73,18 @@ template <> constexpr inline auto PerformanceMonitor::qt_create_metaobjectdata<q
         QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'PassThroughMode'
         QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'SaveDataFromUi'
+        // Slot 'ScreenChanged'
         QtMocHelpers::SlotData<void()>(9, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'SaveDataFromUi'
+        QtMocHelpers::SlotData<void()>(10, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'ButtonBoxClicked'
-        QtMocHelpers::SlotData<void(QAbstractButton *)>(10, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { 0x80000000 | 11, 12 },
+        QtMocHelpers::SlotData<void(QAbstractButton *)>(11, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 12, 13 },
         }}),
         // Slot 'About'
-        QtMocHelpers::SlotData<void()>(13, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'Help'
         QtMocHelpers::SlotData<void()>(14, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'Help'
+        QtMocHelpers::SlotData<void()>(15, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -111,17 +114,18 @@ void PerformanceMonitor::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
         case 3: _t->RestorePositions(); break;
         case 4: _t->ResetPositionsAndSave(); break;
         case 5: _t->PassThroughMode(); break;
-        case 6: _t->SaveDataFromUi(); break;
-        case 7: _t->ButtonBoxClicked((*reinterpret_cast< std::add_pointer_t<QAbstractButton*>>(_a[1]))); break;
-        case 8: _t->About(); break;
-        case 9: _t->Help(); break;
+        case 6: _t->ScreenChanged(); break;
+        case 7: _t->SaveDataFromUi(); break;
+        case 8: _t->ButtonBoxClicked((*reinterpret_cast< std::add_pointer_t<QAbstractButton*>>(_a[1]))); break;
+        case 9: _t->About(); break;
+        case 10: _t->Help(); break;
         default: ;
         }
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
         switch (_id) {
         default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
-        case 7:
+        case 8:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
             case 0:
@@ -151,14 +155,14 @@ int PerformanceMonitor::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 10)
+        if (_id < 11)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 10;
+        _id -= 11;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 10)
+        if (_id < 11)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 10;
+        _id -= 11;
     }
     return _id;
 }

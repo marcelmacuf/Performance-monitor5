@@ -108,6 +108,7 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	ui.setupUi(this);
 	InitUiElements();
 	connect(ui.buttonBox, &QDialogButtonBox::clicked, this, &PerformanceMonitor::ButtonBoxClicked);
+	connect(screen(), &QScreen::physicalDotsPerInchChanged, this, &PerformanceMonitor::ScreenChanged);
 	ChartOptions* const optionsList[4]{ &m_cpuOptions , &m_ramOptions, &m_diskOptions, &m_netOptions };
 	if (m_globalOptions.Load(*m_pAppSettings))
 	{
@@ -141,6 +142,7 @@ PerformanceMonitor::PerformanceMonitor(QWidget* parent) : QDialog(parent),
 	QObject::connect(&m_timer, &QTimer::timeout, this, &PerformanceMonitor::HandleTimeout);
 	ApplyGlobalOptions();
 	m_timer.start();
+	m_previousScreenSize = screen()->size();
 }
 
 PerformanceMonitor::~PerformanceMonitor()
@@ -457,9 +459,9 @@ void PerformanceMonitor::ResetUi()
 void PerformanceMonitor::ResetPositions()
 {
 	const QScreen* screen = QGuiApplication::primaryScreen();
-	const QRect screenGeometry = screen->geometry();
-	const int screenheight = screenGeometry.height();
-	const int screenWidth = screenGeometry.width();
+	const QSize screenSize = screen->size();
+	const int screenheight = screenSize.height();
+	const int screenWidth = screenSize.width();
 	constexpr int xOffset = 24;
 	constexpr int yOffset = 97;
 	constexpr int bottomOffset = 95;
@@ -620,6 +622,33 @@ void PerformanceMonitor::PassThroughMode()
 		pOptions->Save(*m_pAppSettings);
 	}
 	m_pAppSettings->sync();
+}
+
+void PerformanceMonitor::ScreenChanged()
+{
+	ChartWidget* pRamWidget = FindChart(m_ramOptions.m_optionName);
+	const QPoint ramPos = pRamWidget->pos();
+	const QSize newSize = screen()->size();
+	const double oldWidth = m_previousScreenSize.width();
+	const double oldHeight = m_previousScreenSize.height();
+	const double oldX = ramPos.x();
+	const double oldY = ramPos.y();
+	const double xPer = oldX / oldWidth;
+	const double yPer = oldY / oldHeight;
+
+	const double newX = newSize.width() * xPer;
+	const double newY = newSize.height() * yPer;
+	const QPoint offset(oldX - newX, oldY - newY);
+	
+	for (ChartWidget* pWidget : m_pGraphs)
+	{
+		const bool bIsTransparent = pWidget->windowFlags() & Qt::WindowTransparentForInput;
+		pWidget->setWindowFlag(Qt::WindowTransparentForInput, !bIsTransparent);
+		pWidget->setWindowFlag(Qt::WindowTransparentForInput, bIsTransparent);
+		pWidget->show();
+		pWidget->move(pWidget->pos() - offset);
+	}
+	m_previousScreenSize = newSize;
 }
 
 void PerformanceMonitor::CreatePerfCounters()
