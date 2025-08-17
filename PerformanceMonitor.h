@@ -48,6 +48,7 @@ private:
 	void CreatePerfCounters();
 	void ReleasePerfCounters();
 	void ShowError(const QString& errorMessage);
+	int GetCoresCount() const;
 	
 	ChartWidget* FindChart(const QString& accesibleName) const;
     Ui::PerformanceMonitorClass ui;

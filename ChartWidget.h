@@ -143,6 +143,7 @@ public:
 	bool m_bShowGraph{ true };
 };
 
+constexpr int c_FirstGraphCores = 4;
 class ChartCpuOptions final : public ChartOptions
 {
 public:
@@ -150,18 +151,22 @@ public:
 	bool LoadOther(QSettings& settings) override
 	{
 		m_bOneGraphForEachCore = settings.value("OneGraphForEachCore", false).toBool();
+		m_FirstGraphCores = settings.value("FirstGraphCores", false).toInt();
 		return true;
 	}
 	void SaveOther(QSettings& settings) const override
 	{
 		settings.setValue("OneGraphForEachCore", m_bOneGraphForEachCore);
+		settings.setValue("FirstGraphCores", m_FirstGraphCores);
 	}
 	void Reset() override
 	{
 		ChartOptions::Reset();
 		m_bOneGraphForEachCore = false;
+		m_FirstGraphCores = c_FirstGraphCores;
 	}
 	bool m_bOneGraphForEachCore{ false };
+	int  m_FirstGraphCores{ c_FirstGraphCores };
 };
 
 class ChartDoubleOptions : public ChartOptions

@@ -25,6 +25,7 @@
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QWidget>
 #include "ColorButton.h"
+#include "MySlider.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -53,18 +54,20 @@ public:
     QLabel *label_4;
     QWidget *TabCpu;
     QGridLayout *gridLayout_2;
-    QSpacerItem *verticalSpacer;
-    QCheckBox *chCPUManual;
-    QComboBox *lineSizeCPU;
-    ColorButton *pbLineCPU;
-    QComboBox *graphCPU;
-    ColorButton *pbBackCPU;
-    QCheckBox *showForEachCPU;
-    QLabel *label_8;
-    QComboBox *sizeCPU;
-    QCheckBox *showCPU;
     QLabel *label_9;
+    QCheckBox *showForEachCPU;
+    ColorButton *pbLineCPU;
+    ColorButton *pbBackCPU;
+    QComboBox *lineSizeCPU;
     QLabel *label_14;
+    QSpacerItem *verticalSpacer;
+    QComboBox *graphCPU;
+    QCheckBox *showCPU;
+    QLabel *label_8;
+    QCheckBox *chCPUManual;
+    QComboBox *sizeCPU;
+    MySlider *coresCPU;
+    QLabel *label_18;
     QWidget *tabMemory;
     QGridLayout *gridLayout_4;
     QCheckBox *showRAM;
@@ -222,19 +225,15 @@ public:
         gridLayout_2->setSpacing(6);
         gridLayout_2->setContentsMargins(11, 11, 11, 11);
         gridLayout_2->setObjectName("gridLayout_2");
-        verticalSpacer = new QSpacerItem(224, 60, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+        label_9 = new QLabel(TabCpu);
+        label_9->setObjectName("label_9");
 
-        gridLayout_2->addItem(verticalSpacer, 8, 0, 1, 2);
+        gridLayout_2->addWidget(label_9, 6, 1, 1, 1);
 
-        chCPUManual = new QCheckBox(TabCpu);
-        chCPUManual->setObjectName("chCPUManual");
+        showForEachCPU = new QCheckBox(TabCpu);
+        showForEachCPU->setObjectName("showForEachCPU");
 
-        gridLayout_2->addWidget(chCPUManual, 5, 0, 1, 2);
-
-        lineSizeCPU = new QComboBox(TabCpu);
-        lineSizeCPU->setObjectName("lineSizeCPU");
-
-        gridLayout_2->addWidget(lineSizeCPU, 2, 0, 1, 1);
+        gridLayout_2->addWidget(showForEachCPU, 7, 0, 1, 2);
 
         pbLineCPU = new ColorButton(TabCpu);
         pbLineCPU->setObjectName("pbLineCPU");
@@ -242,46 +241,62 @@ public:
 
         gridLayout_2->addWidget(pbLineCPU, 6, 0, 1, 1);
 
-        graphCPU = new QComboBox(TabCpu);
-        graphCPU->setObjectName("graphCPU");
-
-        gridLayout_2->addWidget(graphCPU, 1, 0, 1, 1);
-
         pbBackCPU = new ColorButton(TabCpu);
         pbBackCPU->setObjectName("pbBackCPU");
         pbBackCPU->setFlat(true);
 
         gridLayout_2->addWidget(pbBackCPU, 4, 0, 1, 1);
 
-        showForEachCPU = new QCheckBox(TabCpu);
-        showForEachCPU->setObjectName("showForEachCPU");
+        lineSizeCPU = new QComboBox(TabCpu);
+        lineSizeCPU->setObjectName("lineSizeCPU");
 
-        gridLayout_2->addWidget(showForEachCPU, 7, 0, 1, 2);
+        gridLayout_2->addWidget(lineSizeCPU, 2, 0, 1, 1);
 
-        label_8 = new QLabel(TabCpu);
-        label_8->setObjectName("label_8");
+        label_14 = new QLabel(TabCpu);
+        label_14->setObjectName("label_14");
 
-        gridLayout_2->addWidget(label_8, 4, 1, 1, 1);
+        gridLayout_2->addWidget(label_14, 2, 1, 1, 1);
 
-        sizeCPU = new QComboBox(TabCpu);
-        sizeCPU->setObjectName("sizeCPU");
+        verticalSpacer = new QSpacerItem(224, 60, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        gridLayout_2->addWidget(sizeCPU, 3, 0, 1, 1);
+        gridLayout_2->addItem(verticalSpacer, 9, 0, 1, 2);
+
+        graphCPU = new QComboBox(TabCpu);
+        graphCPU->setObjectName("graphCPU");
+
+        gridLayout_2->addWidget(graphCPU, 1, 0, 1, 1);
 
         showCPU = new QCheckBox(TabCpu);
         showCPU->setObjectName("showCPU");
 
         gridLayout_2->addWidget(showCPU, 0, 0, 1, 1);
 
-        label_9 = new QLabel(TabCpu);
-        label_9->setObjectName("label_9");
+        label_8 = new QLabel(TabCpu);
+        label_8->setObjectName("label_8");
 
-        gridLayout_2->addWidget(label_9, 6, 1, 1, 1);
+        gridLayout_2->addWidget(label_8, 4, 1, 1, 1);
 
-        label_14 = new QLabel(TabCpu);
-        label_14->setObjectName("label_14");
+        chCPUManual = new QCheckBox(TabCpu);
+        chCPUManual->setObjectName("chCPUManual");
 
-        gridLayout_2->addWidget(label_14, 2, 1, 1, 1);
+        gridLayout_2->addWidget(chCPUManual, 5, 0, 1, 2);
+
+        sizeCPU = new QComboBox(TabCpu);
+        sizeCPU->setObjectName("sizeCPU");
+
+        gridLayout_2->addWidget(sizeCPU, 3, 0, 1, 1);
+
+        coresCPU = new MySlider(TabCpu);
+        coresCPU->setObjectName("coresCPU");
+        coresCPU->setMinimumSize(QSize(0, 30));
+        coresCPU->setOrientation(Qt::Orientation::Horizontal);
+
+        gridLayout_2->addWidget(coresCPU, 8, 0, 1, 1);
+
+        label_18 = new QLabel(TabCpu);
+        label_18->setObjectName("label_18");
+
+        gridLayout_2->addWidget(label_18, 8, 1, 1, 1);
 
         tabWidget->addTab(TabCpu, QString());
         tabMemory = new QWidget();
@@ -529,14 +544,15 @@ public:
         label_3->setText(QCoreApplication::translate("PerformanceMonitorClass", "Visibility", nullptr));
         label_4->setText(QCoreApplication::translate("PerformanceMonitorClass", "Style", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(TabGeneral), QCoreApplication::translate("PerformanceMonitorClass", "General", nullptr));
-        chCPUManual->setText(QCoreApplication::translate("PerformanceMonitorClass", "Manual Foreground", nullptr));
+        label_9->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
+        showForEachCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show One Graph for every CPU/Core", nullptr));
         pbLineCPU->setText(QString());
         pbBackCPU->setText(QString());
-        showForEachCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show One Graph for every CPU/Core", nullptr));
-        label_8->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
-        showCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
-        label_9->setText(QCoreApplication::translate("PerformanceMonitorClass", "Foreground Color", nullptr));
         label_14->setText(QCoreApplication::translate("PerformanceMonitorClass", "Line width", nullptr));
+        showCPU->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
+        label_8->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));
+        chCPUManual->setText(QCoreApplication::translate("PerformanceMonitorClass", "Manual Foreground", nullptr));
+        label_18->setText(QCoreApplication::translate("PerformanceMonitorClass", "First graph cores", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(TabCpu), QCoreApplication::translate("PerformanceMonitorClass", "Cpu", nullptr));
         showRAM->setText(QCoreApplication::translate("PerformanceMonitorClass", "Show this Panel", nullptr));
         label_10->setText(QCoreApplication::translate("PerformanceMonitorClass", "Background Color", nullptr));

@@ -260,6 +260,18 @@ void PerformanceMonitor::InitUiElements()
 	{
 		ui.maxBandwithNET->addItem(item.m_str);
 	}
+	const int coresCount = GetCoresCount();
+	constexpr int tickCountMax = 8;	// maximum 8 tick on axis.
+	int tickInterval = 1;
+	for (; tickInterval < coresCount; tickInterval++)
+	{
+		if (coresCount / tickInterval <= tickCountMax)
+			break;
+	}
+	ui.coresCPU->setTickInterval(tickInterval);
+	ui.coresCPU->setSingleStep(tickInterval);
+	ui.coresCPU->setRange(coresCount < 2 ? 0 : 2, coresCount);
+	ui.coresCPU->setTickPosition(QSlider::NoTicks);
 }
 
 void PerformanceMonitor::ValidateData()
@@ -318,6 +330,10 @@ void PerformanceMonitor::ValidateData()
 
 	if (m_netOptions.m_maxNetworkBandwidthIndex < 0 || m_netOptions.m_maxNetworkBandwidthIndex >= std::size(c_BandwithList))
 		m_netOptions.m_maxNetworkBandwidthIndex = c_DefaultMaxBandwithIndex;
+
+	const int coresCount = GetCoresCount();
+	if (m_cpuOptions.m_FirstGraphCores > coresCount || m_cpuOptions.m_FirstGraphCores == 0)
+		m_cpuOptions.m_FirstGraphCores = min(coresCount, c_FirstGraphCores);
 }
 
 void PerformanceMonitor::LoadDataToUi(const ChartGlobalOptions& globalOptions, const ChartCpuOptions& cpuOptions, const ChartOptions& ramOptions,
@@ -347,6 +363,7 @@ void PerformanceMonitor::LoadDataToUi(const ChartGlobalOptions& globalOptions, c
 	LoadDataToChart(netOptions, ui.showNET, ui.graphNET, ui.lineSizeNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
 
 	ui.showForEachCPU->setChecked(cpuOptions.m_bOneGraphForEachCore);
+	ui.coresCPU->setValue(cpuOptions.m_FirstGraphCores);
 	ui.separateGrpahsDisk->setChecked(diskOptions.m_bShowSeparateGraphs);
 	ui.separateGrpahsNET->setChecked(netOptions.m_bShowSeparateGraphs);
 	ui.maxBandwithNET->setCurrentIndex(netOptions.m_maxNetworkBandwidthIndex);
@@ -410,6 +427,7 @@ void PerformanceMonitor::SaveDataFromUi()
 	SaveDataFromChart(m_netOptions, ui.showNET, ui.graphNET, ui.lineSizeNET, ui.sizeNET, ui.pbBackNET, ui.chNETManual, ui.pbLineNET);
 
 	m_cpuOptions.m_bOneGraphForEachCore = ui.showForEachCPU->isChecked();
+	m_cpuOptions.m_FirstGraphCores = ui.coresCPU->value();
 	m_diskOptions.m_bShowSeparateGraphs = ui.separateGrpahsDisk->isChecked();
 	m_netOptions.m_bShowSeparateGraphs = ui.separateGrpahsNET->isChecked();
 	m_netOptions.m_maxNetworkBandwidthIndex = ui.maxBandwithNET->currentIndex();
@@ -671,17 +689,27 @@ void PerformanceMonitor::CreatePerfCounters()
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\Processor(_Total)\\% Privileged Time", 0, &pTotalSystemCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalSystemCounter)
 			{
-				ShowError("Cannot initialize CPU system counter.");
-				return;
+				pdhStatus = PdhAddCounter(m_hQuery, L"\\Processor Information(_Total)\\% Privileged Time", 0, &pTotalSystemCounter);
+				if (pdhStatus != ERROR_SUCCESS || !pTotalSystemCounter)
+				{
+					ShowError("Cannot initialize CPU system counter. " + QString::number((ulong)pdhStatus));
+					return;
+				}
 			}
 			void* pTotalUserCounter = nullptr;
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\Processor(_Total)\\% User Time", 0, &pTotalUserCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalUserCounter)
 			{
-				ShowError("Cannot initialize CPU user counter.");
-				return;
+				pdhStatus = PdhAddCounter(m_hQuery, L"\\Processor Information(_Total)\\% User Time", 0, &pTotalUserCounter);
+				if (pdhStatus != ERROR_SUCCESS || !pTotalUserCounter)
+				{
+					ShowError("Cannot initialize CPU user counter. " + QString::number((ulong)pdhStatus));
+					return;
+				}
 			}
 			pCpuWidget->SetCounters({ pTotalSystemCounter, pTotalUserCounter });
+			const int cpuCoresCount = GetCoresCount();
+			pCpuWidget->SetFirstLineScale(cpuCoresCount/ m_cpuOptions.m_FirstGraphCores);
 		}
 	}
 	if (m_diskOptions.m_bShowSeparateGraphs)
@@ -696,28 +724,28 @@ void PerformanceMonitor::CreatePerfCounters()
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Write Time", 0, &pTotalWriteCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalWriteCounter)
 			{
-				ShowError("Cannot initialize disc write counter.");
+				ShowError("Cannot initialize disc write counter. " + QString::number(pdhStatus));
 				return;
 			}
 			void* pAverageWriteQCounter = nullptr;
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\Avg. Disk Write Queue Length", 0, &pAverageWriteQCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pAverageWriteQCounter)
 			{
-				ShowError("Cannot initialize disc write counter.");
+				ShowError("Cannot initialize disc write counter. " + QString::number(pdhStatus));
 				return;
 			}
 			void* pTotalReadCounter = nullptr;
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\% Disk Read Time", 0, &pTotalReadCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalReadCounter)
 			{
-				ShowError("Cannot initialize disc read counter.");
+				ShowError("Cannot initialize disc read counter. " + QString::number(pdhStatus));
 				return;
 			}
 			void* pAverageReadQCounter = nullptr;
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\PhysicalDisk(_Total)\\Avg. Disk Read Queue Length", 0, &pAverageReadQCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pAverageReadQCounter)
 			{
-				ShowError("Cannot initialize disc write counter.");
+				ShowError("Cannot initialize disc write counter. " + QString::number(pdhStatus));
 				return;
 			}
 			pDiscWidget->SetCounters({ pTotalReadCounter, pAverageReadQCounter,pTotalWriteCounter, pAverageWriteQCounter });
@@ -736,14 +764,14 @@ void PerformanceMonitor::CreatePerfCounters()
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Interface(*)\\Bytes Received/sec", 0, &pTotalSentCounter);	//Realtek Gaming 2.5Gbe Family Controller
 			if (pdhStatus != ERROR_SUCCESS || !pTotalSentCounter)
 			{
-				ShowError("Cannot initialize disc write counter.");
+				ShowError("Cannot initialize disc write counter. " + QString::number(pdhStatus));
 				return;
 			}
 			void* pTotalReceivedCounter = nullptr;
 			pdhStatus = PdhAddCounter(m_hQuery, L"\\Network Interface(*)\\Bytes Sent/sec", 0, &pTotalReceivedCounter);
 			if (pdhStatus != ERROR_SUCCESS || !pTotalReceivedCounter)
 			{
-				ShowError("Cannot initialize disc read counter.");
+				ShowError("Cannot initialize disc read counter. " + QString::number(pdhStatus));
 				return;
 			}
 			pNetWidget->SetCounters({ pTotalSentCounter, pTotalReceivedCounter });
@@ -754,6 +782,13 @@ void PerformanceMonitor::CreatePerfCounters()
 void PerformanceMonitor::ShowError(const QString& errorMessage)
 {
 	QMessageBox::information(this, QString("Perf counters error."), errorMessage, QMessageBox::StandardButton::Yes);
+}
+
+int PerformanceMonitor::GetCoresCount() const
+{
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	return sysinfo.dwNumberOfProcessors;
 }
 
 void PerformanceMonitor::HandleTimeout()
@@ -778,11 +813,6 @@ void PerformanceMonitor::HandleTimeout()
 				// Second value is sum of both values.
 				values[1] += values[0];
 				pCpuWidget->AddData(values);
-				SYSTEM_INFO sysinfo;
-				GetSystemInfo(&sysinfo);
-				const double numCPU = sysinfo.dwNumberOfProcessors;
-				constexpr double visibleCPUS = 4;
-				pCpuWidget->SetFirstLineScale(numCPU / visibleCPUS);
 			}
 			if (ChartWidget* pRAMWidget = FindChart(m_ramOptions.m_optionName))
 			{

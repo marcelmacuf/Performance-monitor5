@@ -124,10 +124,12 @@
     <QtMoc Include="PerformanceMonitor.h" />
     <ClCompile Include="ChartWidget.cpp" />
     <ClCompile Include="ColorButton.cpp" />
+    <ClCompile Include="MySlider.cpp" />
     <ClCompile Include="PerformanceMonitor.cpp" />
     <ClCompile Include="main.cpp" />
     <QtMoc Include="ChartWidget.h" />
     <QtMoc Include="ColorButton.h" />
+    <QtMoc Include="MySlider.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClCompile Include="stdafx.cpp">

@@ -1,5 +1,6 @@
 D:\Programing\Projects\Performance-monitor5\ChartWidget.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\ChartWidget.obj
 D:\Programing\Projects\Performance-monitor5\ColorButton.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\ColorButton.obj
+D:\Programing\Projects\Performance-monitor5\MySlider.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\MySlider.obj
 D:\Programing\Projects\Performance-monitor5\PerformanceMonitor.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\PerformanceMonitor.obj
 D:\Programing\Projects\Performance-monitor5\main.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\main.obj
 D:\Programing\Projects\Performance-monitor5\stdafx.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\stdafx.obj
@@ -7,3 +8,4 @@ D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\qt\rcc\qrc_Pe
 D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\qt\moc\moc_PerformanceMonitor.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\moc_PerformanceMonitor.obj
 D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\qt\moc\moc_ChartWidget.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\moc_ChartWidget.obj
 D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\qt\moc\moc_ColorButton.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\moc_ColorButton.obj
+D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\qt\moc\moc_MySlider.cpp;D:\Programing\Projects\Performance-monitor5\PerfoMonitor\x64\Debug\moc_MySlider.obj

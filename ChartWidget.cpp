@@ -140,44 +140,25 @@ void ChartWidget::AddData(const double values[2])
 				data.pop_back();
 			}
 		};
-	m_firstData.append(QPointF(c_XAxisRange+1,values[0] * m_firstGraphScale));
-	m_secondData.append(QPointF(c_XAxisRange+1, values[1] * m_firstGraphScale));
+	const double scaledValues[2]{ values[0] * m_firstGraphScale, values[1] * m_firstGraphScale };
+	constexpr int xEnd = c_XAxisRange + 1;
+	const bool bShowSecond = scaledValues[1] >= 100;
+	m_firstData.append(QPointF(xEnd, bShowSecond ? c_YUnderValue : scaledValues[0]));
+	m_secondData.append(QPointF(xEnd, scaledValues[1]));
 	MoveData(m_firstData);
 	MoveData(m_secondData);
 
 	QChart* pChart = chart();
 	const QList<QAbstractSeries*> series = pChart->series();
-
-	const auto GenerateSecondData= [](double input, const QPointF& last)
-	{
-		double yAxis = last.y();
-		if (yAxis < 100)
-		{
-			yAxis = c_YUnderValue;
-		}
-		else
-		{
-			yAxis = input;
-		}
-		return QPointF(last.x()/* + 0.5*/, yAxis);
-	};
-
 	if (series.size() > 2)
 	{
-		QPointF last1 = m_firstData.back();
-		if (last1.y() < 100)
-		{
-			last1.setY(c_YUnderValue);
-		}
-		m_thirdData.append(GenerateSecondData(values[0], m_firstData.back()));
-		m_fourthData.append(GenerateSecondData(values[1], m_secondData.back()));
+		m_thirdData.append(QPointF(xEnd, bShowSecond ? values[0] : c_YUnderValue));
+		m_fourthData.append(QPointF(xEnd, bShowSecond ? values[1] : c_YUnderValue));
 		MoveData(m_thirdData);
 		MoveData(m_fourthData);
 	}
 
 	const QVector<QPointF>* data[]{ &m_firstData , &m_secondData, &m_thirdData, &m_fourthData };
-
-	
 	for (size_t i = 0, seriesSize = series.size(); i < seriesSize && i < std::size(data);i++)
 	{
 		QXYSeries* pLineSeries = static_cast<QXYSeries*>(series[i]);
